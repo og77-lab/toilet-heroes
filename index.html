@@ -214,7 +214,15 @@
 // =============================================================
 // CONFIG
 // =============================================================
-const W = 960, H = 540;
+// Detect mobile early so we can choose a wider internal resolution
+// that natively matches phone landscape aspect (~19.5:9 → ~2.17:1).
+// This makes the canvas fill the screen on mobile with no letterbox.
+const _isMobileEarly = ('ontouchstart' in window)
+  || navigator.maxTouchPoints > 0
+  || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+const W = _isMobileEarly ? 1200 : 960;  // 1200×540 ≈ 2.22:1 on mobile, 960×540 = 16:9 on desktop
+const H = 540;
 let LEVEL_W = 3200; // dynamic — updated in create() from current level
 const GROUND_Y = H - 48;
 
@@ -2831,12 +2839,6 @@ try {
 // =============================================================
 // PHASER CONFIG
 // =============================================================
-// Pre-Phaser mobile check (TouchInput.detect runs later but Phaser needs this first)
-const _isMobileForScale = ('ontouchstart' in window)
-  || navigator.maxTouchPoints > 0
-  || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-  || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-
 const config = {
   type: Phaser.AUTO,
   width: W, height: H,
