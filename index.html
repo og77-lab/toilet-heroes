@@ -654,15 +654,16 @@ function platformLadder(startX, startY, count, dx, dy) {
   return arr;
 }
 
-// Bosses — reused across worlds
-const BOSS_JANITOR = { key: 'janitor', name: '🧹 המנקה הזועם 🧹', hp: 20, dmg: 18, texture: 'boss' };
-const BOSS_RAT_KING = { key: 'ratKing', name: '🐀 מלך העכברושים 🐀', hp: 28, dmg: 22, texture: 'bossRat' };
-// For now, re-use bosses until we author new ones per world
-const BOSS_MID_1 = Object.assign({}, BOSS_JANITOR, { hp: 12, name: '🧹 מנקה מתלמד 🧹' });
-const BOSS_MID_2 = Object.assign({}, BOSS_JANITOR, { hp: 16, name: '🧹 ראש מנקים 🧹' });
-const BOSS_FINAL_1 = Object.assign({}, BOSS_JANITOR, { hp: 30, dmg: 22, name: '🧹 קיסר הניקיון 🧹' });
-const BOSS_MID_W2 = Object.assign({}, BOSS_RAT_KING, { hp: 20, name: '🐀 עכברוש אלפא 🐀' });
-const BOSS_FINAL_W2 = Object.assign({}, BOSS_RAT_KING, { hp: 38, dmg: 26, name: '🐀 קיסר העכברושים 🐀' });
+// Bosses — reused across worlds. HP tuned so each fight feels meaningful.
+// Player bullet damage ranges 1-3 base (up to ~4.5 with max upgrades); boss phases at 66% / 33% HP.
+const BOSS_JANITOR = { key: 'janitor', name: '🧹 המנקה הזועם 🧹', hp: 50, dmg: 18, texture: 'boss' };
+const BOSS_RAT_KING = { key: 'ratKing', name: '🐀 מלך העכברושים 🐀', hp: 80, dmg: 22, texture: 'bossRat' };
+// Difficulty curve: each boss feels like a real fight (~15-25 seconds + phases)
+const BOSS_MID_1   = Object.assign({}, BOSS_JANITOR, { hp: 30,  dmg: 18, name: '🧹 מנקה מתלמד 🧹' });
+const BOSS_MID_2   = Object.assign({}, BOSS_JANITOR, { hp: 45,  dmg: 20, name: '🧹 ראש מנקים 🧹' });
+const BOSS_FINAL_1 = Object.assign({}, BOSS_JANITOR, { hp: 70,  dmg: 24, name: '🧹 קיסר הניקיון 🧹' });
+const BOSS_MID_W2  = Object.assign({}, BOSS_RAT_KING, { hp: 55,  dmg: 22, name: '🐀 עכברוש אלפא 🐀' });
+const BOSS_FINAL_W2 = Object.assign({}, BOSS_RAT_KING, { hp: 95, dmg: 28, name: '🐀 קיסר העכברושים 🐀' });
 
 // -------------------------------------------------------------
 // WORLD 1 — מערכת התברואה: טבע → גינה → חדרי בית → אמבטיה → מכולת
