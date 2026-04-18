@@ -1,0 +1,19 @@
+# Editor / IDE
+.vscode/
+.idea/
+
+# Claude Code local config (contains user settings)
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies (none right now, but future-proof)
+node_modules/
+
+# Vercel
+.vercel/
+
+# Logs
+*.log
