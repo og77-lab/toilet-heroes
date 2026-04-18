@@ -654,16 +654,24 @@ function platformLadder(startX, startY, count, dx, dy) {
   return arr;
 }
 
-// Bosses — reused across worlds. HP tuned so each fight feels meaningful.
-// Player bullet damage ranges 1-3 base (up to ~4.5 with max upgrades); boss phases at 66% / 33% HP.
-const BOSS_JANITOR = { key: 'janitor', name: '🧹 המנקה הזועם 🧹', hp: 50, dmg: 18, texture: 'boss' };
+// Bosses — difficulty curve across all 3 worlds. Phases trigger at 66% and 33% HP.
+// Player bullet damage: 1-3 base, up to ~4.5 with max upgrades.
+const BOSS_JANITOR  = { key: 'janitor', name: '🧹 המנקה הזועם 🧹',    hp: 50, dmg: 18, texture: 'boss' };
 const BOSS_RAT_KING = { key: 'ratKing', name: '🐀 מלך העכברושים 🐀', hp: 80, dmg: 22, texture: 'bossRat' };
-// Difficulty curve: each boss feels like a real fight (~15-25 seconds + phases)
-const BOSS_MID_1   = Object.assign({}, BOSS_JANITOR, { hp: 30,  dmg: 18, name: '🧹 מנקה מתלמד 🧹' });
-const BOSS_MID_2   = Object.assign({}, BOSS_JANITOR, { hp: 45,  dmg: 20, name: '🧹 ראש מנקים 🧹' });
-const BOSS_FINAL_1 = Object.assign({}, BOSS_JANITOR, { hp: 70,  dmg: 24, name: '🧹 קיסר הניקיון 🧹' });
-const BOSS_MID_W2  = Object.assign({}, BOSS_RAT_KING, { hp: 55,  dmg: 22, name: '🐀 עכברוש אלפא 🐀' });
-const BOSS_FINAL_W2 = Object.assign({}, BOSS_RAT_KING, { hp: 95, dmg: 28, name: '🐀 קיסר העכברושים 🐀' });
+
+// ---- World 1 (tutorial/easy) ----
+const BOSS_MID_1    = Object.assign({}, BOSS_JANITOR, { hp: 30,  dmg: 18, name: '🧹 מנקה מתלמד 🧹' });
+const BOSS_MID_2    = Object.assign({}, BOSS_JANITOR, { hp: 45,  dmg: 20, name: '🧹 ראש מנקים 🧹' });
+const BOSS_FINAL_1  = Object.assign({}, BOSS_JANITOR, { hp: 70,  dmg: 24, name: '🧹 קיסר הניקיון 🧹' });
+
+// ---- World 2 (medium) ----
+const BOSS_MID_W2   = Object.assign({}, BOSS_RAT_KING, { hp: 55,  dmg: 22, name: '🐀 עכברוש אלפא 🐀' });
+const BOSS_FINAL_W2 = Object.assign({}, BOSS_RAT_KING, { hp: 95,  dmg: 28, name: '🐀 קיסר העכברושים 🐀' });
+
+// ---- World 3 (digestive — endgame, hardest) ----
+const BOSS_MID_W3_1 = Object.assign({}, BOSS_RAT_KING, { hp: 75,  dmg: 24, name: '🦠 בקטריה זועמת 🦠' });
+const BOSS_MID_W3_2 = Object.assign({}, BOSS_RAT_KING, { hp: 105, dmg: 28, name: '🦠 בקטריה משוריינת 🦠' });
+const BOSS_FINAL_W3 = Object.assign({}, BOSS_RAT_KING, { hp: 150, dmg: 32, name: '🦠 מלך הבקטריות 🦠' });
 
 // -------------------------------------------------------------
 // WORLD 1 — מערכת התברואה: טבע → גינה → חדרי בית → אמבטיה → מכולת
@@ -1910,7 +1918,7 @@ const WORLDS = [
           movingPlatforms: [
             {x: 6100, y: 300, endX: 6400, endY: 260, speed: 50}
           ],
-          hasBoss: true, boss: BOSS_MID_1
+          hasBoss: true, boss: BOSS_MID_W3_1
         }),
 
         // ===== 3-3: Esophagus — the throat opens to the stomach =====
@@ -2080,7 +2088,7 @@ const WORLDS = [
           crushers: [
             {x: 5900, ceilingY: 150, groundY: 444, speed: 350, waitMs: 2000}
           ],
-          hasBoss: true, boss: BOSS_MID_1
+          hasBoss: true, boss: BOSS_MID_W3_1
         }),
 
         // ===== 3-5: Stomach — digestive fury =====
@@ -2259,7 +2267,7 @@ const WORLDS = [
           crushers: [
             {x: 6100, ceilingY: 150, groundY: 444, speed: 360, waitMs: 1900}
           ],
-          hasBoss: true, boss: BOSS_MID_2
+          hasBoss: true, boss: BOSS_MID_W3_2
         }),
 
         // ===== 3-7: Intestine — twisting corridors =====
@@ -2451,7 +2459,7 @@ const WORLDS = [
             {x: 5400, ceilingY: 150, groundY: 444, speed: 380, waitMs: 1700},
             {x: 8800, ceilingY: 160, groundY: 444, speed: 420, waitMs: 1500}
           ],
-          hasBoss: true, boss: BOSS_MID_2
+          hasBoss: true, boss: BOSS_MID_W3_2
         }),
 
         // ===== 3-9: Intestine — the final stretch =====
@@ -2655,7 +2663,7 @@ const WORLDS = [
             {x: 6500, ceilingY: 150, groundY: 444, speed: 440, waitMs: 1300},
             {x: 9200, ceilingY: 160, groundY: 444, speed: 480, waitMs: 1200}
           ],
-          hasBoss: true, boss: Object.assign({}, BOSS_RAT_KING, { hp: 50, dmg: 30, name: '🦠 מלך הבקטריות 🦠' })
+          hasBoss: true, boss: BOSS_FINAL_W3
         })
       ];
     })()
