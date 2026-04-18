@@ -1,0 +1,21 @@
+{
+  "name": "Super Tush Heroes",
+  "short_name": "Tush Heroes",
+  "description": "גיבורי העל של השירותים - משחק פלטפורמר פעולה",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

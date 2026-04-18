@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tush Heroes">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>גיבורי העל של השירותים — פרוטוטייפ</title>
 <style>
   html, body { margin: 0; padding: 0; background: #1a1a2e; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
@@ -40,17 +46,18 @@
     transform: scale(0.9);
   }
 
-  /* D-pad (bottom-left) — small & compact cross layout */
-  .dpad-btn { width: 42px; height: 42px; font-size: 18px; }
-  #btn-left  { bottom: 52px; left: 6px; }
-  #btn-right { bottom: 52px; left: 96px; }
-  #btn-up    { bottom: 100px; left: 51px; }
-  #btn-down  { bottom: 4px;   left: 51px; }
+  /* D-pad (bottom-left) — compact cross, 38px buttons, touch-action none for multi-touch */
+  .dpad-btn { width: 38px; height: 38px; font-size: 16px; touch-action: none; }
+  #btn-left  { bottom: 46px; left: 4px; }
+  #btn-right { bottom: 46px; left: 86px; }
+  #btn-up    { bottom: 88px; left: 45px; }
+  #btn-down  { bottom: 4px;  left: 45px; }
 
-  /* Action buttons (bottom-right) — jump is biggest (primary), others smaller */
-  #btn-jump    { width: 58px; height: 58px; font-size: 13px; bottom: 6px; right: 6px; background: rgba(76, 175, 80, 0.35); border-color: #4caf50; }
-  #btn-fire    { width: 46px; height: 46px; font-size: 12px; bottom: 66px; right: 10px; background: rgba(255, 82, 82, 0.35); border-color: #ff5252; }
-  #btn-special { width: 46px; height: 46px; font-size: 11px; bottom: 30px; right: 68px; background: rgba(255, 152, 0, 0.35); border-color: #ff9800; }
+  /* Action buttons (bottom-right) — all touch-action none for multi-touch */
+  .action-btn, #btn-jump, #btn-fire, #btn-special { touch-action: none; }
+  #btn-jump    { width: 60px; height: 60px; font-size: 13px; bottom: 6px; right: 6px; background: rgba(76, 175, 80, 0.4); border-color: #4caf50; }
+  #btn-fire    { width: 48px; height: 48px; font-size: 12px; bottom: 72px; right: 12px; background: rgba(255, 82, 82, 0.4); border-color: #ff5252; }
+  #btn-special { width: 44px; height: 44px; font-size: 11px; bottom: 28px; right: 70px; background: rgba(255, 152, 0, 0.4); border-color: #ff9800; }
 
   /* Menu buttons (top-right) — tiny icons */
   .menu-btn { width: 32px; height: 32px; font-size: 14px; border-radius: 8px; }
@@ -2808,52 +2815,84 @@ const TouchInput = {
   },
 
   wireButtons() {
-    const buttons = document.querySelectorAll('#touch-controls .touch-btn');
-    buttons.forEach(btn => {
+    const container = document.getElementById('touch-controls');
+    if (!container) return;
+
+    // Wire action buttons (fullscreen, help) — separate from key-dispatching buttons
+    container.querySelectorAll('.touch-btn').forEach(btn => {
       const action = btn.dataset.action;
-      if (action === 'fullscreen') {
-        btn.addEventListener('pointerdown', (e) => { e.preventDefault(); this.toggleFullscreen(); });
-        return;
-      }
-      if (action === 'help') {
-        btn.addEventListener('pointerdown', (e) => {
-          e.preventDefault();
-          const overlay = document.getElementById('help-overlay');
-          overlay.style.display = 'flex';
-        });
-        return;
-      }
-
-      const key = btn.dataset.key;
-      const keyCode = parseInt(btn.dataset.keycode, 10);
-      let pressed = false;
-
-      const press = (e) => {
-        if (e) e.preventDefault();
-        if (pressed) return;
-        pressed = true;
-        btn.classList.add('active');
-        AudioSys && AudioSys.resume && AudioSys.resume();
-        this.fireKey('keydown', key, keyCode);
+      if (!action) return;
+      const handler = (e) => {
+        e.preventDefault();
+        if (action === 'fullscreen') this.toggleFullscreen();
+        else if (action === 'help') document.getElementById('help-overlay').style.display = 'flex';
       };
-      const release = (e) => {
-        if (e) e.preventDefault();
-        if (!pressed) return;
-        pressed = false;
-        btn.classList.remove('active');
-        this.fireKey('keyup', key, keyCode);
-      };
+      btn.addEventListener('click', handler);
+      btn.addEventListener('touchend', handler, { passive: false });
+    });
 
-      // Pointer events (covers touch + mouse + pen on modern browsers)
-      btn.addEventListener('pointerdown',  press,   { passive: false });
-      btn.addEventListener('pointerup',    release, { passive: false });
-      btn.addEventListener('pointercancel', release,{ passive: false });
-      btn.addEventListener('pointerleave', release, { passive: false });
-      // Extra guard: touchend on the button itself
-      btn.addEventListener('touchend',    release, { passive: false });
-      btn.addEventListener('touchcancel', release, { passive: false });
-      // If user lifts finger while off the button, release anyway
-      document.addEventListener('pointerup', () => { if (pressed) release(); });
+    // Press / release helpers — use element.active class as the source of truth
+    const pressBtn = (btn) => {
+      if (!btn || !btn.dataset.key || btn.classList.contains('active')) return;
+      btn.classList.add('active');
+      AudioSys && AudioSys.resume && AudioSys.resume();
+      this.fireKey('keydown', btn.dataset.key, parseInt(btn.dataset.keycode, 10));
+    };
+    const releaseBtn = (btn) => {
+      if (!btn || !btn.dataset.key || !btn.classList.contains('active')) return;
+      btn.classList.remove('active');
+      this.fireKey('keyup', btn.dataset.key, parseInt(btn.dataset.keycode, 10));
+    };
+    const findBtnAt = (x, y) => {
+      const el = document.elementFromPoint(x, y);
+      if (!el) return null;
+      const btn = el.closest('.touch-btn');
+      if (!btn || btn.dataset.action) return null; // skip fullscreen/help
+      return btn;
+    };
+
+    // MULTI-TOUCH: track each finger by its unique touch identifier.
+    // This is the only reliable way to handle simultaneous button presses.
+    const touchMap = new Map(); // touch.identifier -> btn element
+
+    container.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        const btn = findBtnAt(t.clientX, t.clientY);
+        if (btn) { touchMap.set(t.identifier, btn); pressBtn(btn); }
+      }
+    }, { passive: false });
+
+    container.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        const newBtn = findBtnAt(t.clientX, t.clientY);
+        const oldBtn = touchMap.get(t.identifier);
+        if (newBtn === oldBtn) continue;
+        if (oldBtn) releaseBtn(oldBtn);
+        if (newBtn) { pressBtn(newBtn); touchMap.set(t.identifier, newBtn); }
+        else touchMap.delete(t.identifier);
+      }
+    }, { passive: false });
+
+    const endTouch = (e) => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        const btn = touchMap.get(t.identifier);
+        if (btn) { releaseBtn(btn); touchMap.delete(t.identifier); }
+      }
+    };
+    container.addEventListener('touchend', endTouch, { passive: false });
+    container.addEventListener('touchcancel', endTouch, { passive: false });
+
+    // Desktop mouse fallback (single-button, for testing on desktop)
+    let mouseBtn = null;
+    container.addEventListener('mousedown', (e) => {
+      const btn = e.target.closest('.touch-btn');
+      if (btn && !btn.dataset.action) { mouseBtn = btn; pressBtn(btn); }
+    });
+    window.addEventListener('mouseup', () => {
+      if (mouseBtn) { releaseBtn(mouseBtn); mouseBtn = null; }
     });
   },
 
@@ -2928,6 +2967,14 @@ const _refreshScale = () => {
 };
 window.addEventListener('resize', _refreshScale);
 window.addEventListener('orientationchange', () => setTimeout(_refreshScale, 250));
+document.addEventListener('fullscreenchange', () => setTimeout(_refreshScale, 100));
+document.addEventListener('webkitfullscreenchange', () => setTimeout(_refreshScale, 100));
+
+// If running as installed PWA (iOS standalone mode or Android app), hide the fullscreen button (already fullscreen)
+if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches) {
+  const fsBtn = document.getElementById('btn-fs');
+  if (fsBtn) fsBtn.style.display = 'none';
+}
 
 // Initial refresh once Phaser boots (it reads parent size at startup — if body was just classed as touch-mode the parent grew)
 if (TouchInput.isMobile) setTimeout(_refreshScale, 100);
@@ -5913,6 +5960,17 @@ function create() {
   scene._nKey = scene.input.keyboard.addKey('N');
   // R key is handled per-state in update(); global handler removed to avoid bypassing menus
 
+  // Mobile: tapping the game area during title/win/lose dismisses those screens
+  // (equivalent to pressing SPACE). Won't fire during 'playing' or menu states.
+  scene.input.on('pointerdown', (pointer) => {
+    if (state === 'title' || state === 'win' || state === 'lose') {
+      if (window.TouchInput) {
+        window.TouchInput.fireKey('keydown', ' ', 32);
+        setTimeout(() => window.TouchInput.fireKey('keyup', ' ', 32), 50);
+      }
+    }
+  });
+
   // ---------- CAMERA ----------
   scene.cameras.main.startFollow(player, true, 0.12, 0.12);
   scene.cameras.main.setDeadzone(120, 80);
@@ -5941,7 +5999,8 @@ function create() {
   const ctrls = scene.add.text(W/2, H/2 + 30,
     '← → לתנועה   ·   רווח לקפיצה (החזק לקפיצה גבוהה)\nX לירי   ·   C לרעידת ישבן (יכולת מיוחדת)\n\n5 גיבורים לבחירה! אסוף שעועיות, חסל אויבים, הבס את הבוס.',
     { font: '15px sans-serif', color: '#fff', align: 'center' }).setOrigin(0.5);
-  const press = scene.add.text(W/2, H/2 + 130, '[ לחץ רווח להתחיל ]', {
+  const startHint = window.TouchInput && window.TouchInput.isMobile ? '[ הקש על המסך להתחיל ]' : '[ לחץ רווח להתחיל ]';
+  const press = scene.add.text(W/2, H/2 + 130, startHint, {
     font: 'bold 20px sans-serif', color: '#fff'
   }).setOrigin(0.5);
   scene.tweens.add({ targets: press, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
@@ -6196,7 +6255,8 @@ function create() {
   endText = scene.add.text(W/2, H/2 - 30, '', {
     font: 'bold 48px sans-serif', color: '#fff', stroke: '#000', strokeThickness: 6
   }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(false);
-  endHint = scene.add.text(W/2, H/2 + 40, 'לחץ רווח להתחיל מחדש', {
+  const endHintText = window.TouchInput && window.TouchInput.isMobile ? 'הקש על המסך להתחיל מחדש' : 'לחץ רווח להתחיל מחדש';
+  endHint = scene.add.text(W/2, H/2 + 40, endHintText, {
     font: '20px sans-serif', color: '#ffd700'
   }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(false);
 }
