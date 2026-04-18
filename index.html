@@ -20,49 +20,83 @@
 
   .touch-btn {
     position: absolute; pointer-events: auto;
-    background: rgba(255, 255, 255, 0.18);
-    border: 2px solid rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     color: #fff;
-    font-size: 28px; font-weight: bold;
+    font-weight: bold;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     user-select: none; -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
     transition: transform 50ms, background 50ms;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
     cursor: pointer;
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
   }
   .touch-btn.active, .touch-btn:active {
     background: rgba(255, 235, 59, 0.55);
     border-color: #ffeb3b;
-    transform: scale(0.92);
+    transform: scale(0.9);
   }
 
-  /* D-pad (bottom-left) */
-  .dpad-btn { width: 58px; height: 58px; }
-  #btn-left  { bottom: 74px; left: 16px; }
-  #btn-right { bottom: 74px; left: 144px; }
-  #btn-up    { bottom: 142px; left: 80px; }
-  #btn-down  { bottom: 8px;   left: 80px; }
+  /* D-pad (bottom-left) — small & compact cross layout */
+  .dpad-btn { width: 42px; height: 42px; font-size: 18px; }
+  #btn-left  { bottom: 52px; left: 6px; }
+  #btn-right { bottom: 52px; left: 96px; }
+  #btn-up    { bottom: 100px; left: 51px; }
+  #btn-down  { bottom: 4px;   left: 51px; }
 
-  /* Action buttons (bottom-right) */
-  .action-btn { width: 68px; height: 68px; font-size: 22px; }
-  #btn-jump    { bottom: 12px; right: 96px; background: rgba(76, 175, 80, 0.35); border-color: #4caf50; }
-  #btn-fire    { bottom: 90px; right: 16px; background: rgba(255, 82, 82, 0.35); border-color: #ff5252; }
-  #btn-special { bottom: 12px; right: 16px; background: rgba(255, 152, 0, 0.35); border-color: #ff9800; }
+  /* Action buttons (bottom-right) — jump is biggest (primary), others smaller */
+  #btn-jump    { width: 58px; height: 58px; font-size: 13px; bottom: 6px; right: 6px; background: rgba(76, 175, 80, 0.35); border-color: #4caf50; }
+  #btn-fire    { width: 46px; height: 46px; font-size: 12px; bottom: 66px; right: 10px; background: rgba(255, 82, 82, 0.35); border-color: #ff5252; }
+  #btn-special { width: 46px; height: 46px; font-size: 11px; bottom: 30px; right: 68px; background: rgba(255, 152, 0, 0.35); border-color: #ff9800; }
 
-  /* Menu buttons (top) — smaller */
-  .menu-btn { width: 42px; height: 42px; font-size: 16px; border-radius: 10px; }
-  #btn-shop  { top: 8px; right: 164px; }
-  #btn-back  { top: 8px; right: 114px; }
-  #btn-mute  { top: 8px; right: 64px; }
-  #btn-music { top: 8px; right: 14px; }
+  /* Menu buttons (top-right) — tiny icons */
+  .menu-btn { width: 32px; height: 32px; font-size: 14px; border-radius: 8px; }
+  #btn-shop  { top: 6px; right: 230px; }
+  #btn-back  { top: 6px; right: 192px; }
+  #btn-mute  { top: 6px; right: 154px; }
+  #btn-music { top: 6px; right: 116px; }
+  #btn-help  { top: 6px; right: 78px; }
+  #btn-fs    { top: 6px; right: 6px; width: 64px; font-size: 13px; }
 
   /* Hide extras on mobile */
   body.touch-mode h1, body.touch-mode .hint { display: none; }
   body.touch-mode { padding: 0; margin: 0; justify-content: center; }
   body.touch-mode #game { border: none; border-radius: 0; box-shadow: none; width: 100vw; height: 100vh; height: 100dvh; }
+
+  /* Help overlay */
+  #help-overlay {
+    position: fixed; inset: 0; z-index: 400;
+    background: rgba(10, 10, 26, 0.96);
+    align-items: center; justify-content: center;
+    padding: 10px; overflow-y: auto;
+  }
+  #help-overlay[style*="flex"] { display: flex !important; }
+  .help-panel {
+    background: #1a237e; border: 3px solid #ffd700;
+    border-radius: 14px; padding: 20px 24px; max-width: 720px; width: 100%;
+    color: #fff; position: relative; box-shadow: 0 6px 40px rgba(0,0,0,0.6);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .help-panel h2 { margin: 0 0 12px; color: #ffd700; text-align: center; font-size: 24px; }
+  .help-panel h3 { margin: 16px 0 6px; color: #ffeb3b; font-size: 17px; }
+  .help-section { margin-bottom: 10px; }
+  .help-panel p { margin: 4px 0; font-size: 14px; line-height: 1.5; color: #e0e0e0; }
+  .help-panel b { color: #fff; }
+  .help-close {
+    position: absolute; top: 8px; left: 8px;
+    background: transparent; border: none; color: #fff;
+    font-size: 22px; cursor: pointer; padding: 4px 10px;
+  }
+  .help-ok {
+    display: block; margin: 20px auto 0;
+    background: #4caf50; border: none; color: #fff;
+    padding: 12px 32px; border-radius: 10px; font-size: 16px; font-weight: bold;
+    cursor: pointer;
+  }
+  .help-ok:hover { background: #66bb6a; }
 
   /* Orientation hint (portrait on mobile) */
   #rotate-hint {
@@ -81,7 +115,7 @@
 </head>
 <body>
   <h1>🚽 גיבורי העל של השירותים — פרוטוטייפ</h1>
-  <div class="hint">חצים: תנועה · רווח: קפיצה · X: ירי · C: יכולת מיוחדת · S: חנות · M: השתק · N: מוסיקה</div>
+  <div class="hint">חצים: תנועה · רווח: קפיצה · X: ירי · C: יכולת מיוחדת · S: חנות · M: השתק · N: מוסיקה · <a href="#" onclick="document.getElementById('help-overlay').style.display='flex';return false;" style="color:#ffd700">❓ עזרה</a></div>
   <div id="game"></div>
 
   <!-- TOUCH CONTROLS (shown only when body.touch-mode is active) -->
@@ -100,6 +134,45 @@
     <button class="touch-btn menu-btn" id="btn-back"  data-key="b" data-keycode="66">↩</button>
     <button class="touch-btn menu-btn" id="btn-mute"  data-key="m" data-keycode="77">🔊</button>
     <button class="touch-btn menu-btn" id="btn-music" data-key="n" data-keycode="78">🎵</button>
+    <button class="touch-btn menu-btn" id="btn-help"  data-action="help">❓</button>
+    <button class="touch-btn" id="btn-fs" data-action="fullscreen">⛶ מסך מלא</button>
+  </div>
+
+  <!-- Help overlay (shown on first play + on demand) -->
+  <div id="help-overlay" style="display:none;">
+    <div class="help-panel">
+      <button class="help-close" onclick="document.getElementById('help-overlay').style.display='none'">✕</button>
+      <h2>🚽 איך משחקים? 🚽</h2>
+      <div class="help-section">
+        <h3>🎮 שליטה</h3>
+        <p><b>חצים:</b> תנועה שמאל/ימין &nbsp;·&nbsp; <b>רווח:</b> קפיצה (החזק לקפיצה גבוהה)</p>
+        <p><b>X:</b> ירי &nbsp;·&nbsp; <b>C:</b> יכולת מיוחדת של הדמות</p>
+        <p>ניתן לקפוץ על ראשי אויבים כדי להרוג אותם (כמו במריו!)</p>
+      </div>
+      <div class="help-section">
+        <h3>✨ בונוסים בשלב (Power-Ups)</h3>
+        <p>חפצים זוהרים צבעוניים שמופיעים בחלק מהשלבים. פשוט <b>עבור דרכם</b> כדי להפעיל — הם נשארים פעילים 15 שניות.</p>
+        <p>🫘 <b>שעועית קסם (ירוקה):</b> נזק כפול + פיצוץ אזורי בכל ירי</p>
+        <p>✨ <b>מברשת זהב (זהובה):</b> הגנה כפולה + חסינות לדחיפות</p>
+        <p>🪠 <b>פומפה אדומה:</b> מהירות כפולה + שובל אש מאחורה</p>
+        <p>⭐ <b>כוכב סרחון (צהוב):</b> חסינות מלאה — אויבים מתים ממגע!</p>
+      </div>
+      <div class="help-section">
+        <h3>🛒 החנות (S)</h3>
+        <p>במפת העולם לחץ <b>S</b> (או כפתור 🛒) לפתיחת חנות.</p>
+        <p><b>שדרוגים קבועים:</b> שלם שעועיות כדי להעלות יכולות לצמיתות (HP, נזק, מהירות, קפיצה, הגנה, טווח, דיוק) — עד 3 רמות לכל אחד.</p>
+        <p><b>פריטים חד-פעמיים:</b> מופעלים אוטומטית בתחילת השלב הבא:</p>
+        <p>❤️ <b>חיים נוספים</b> — אם מתים, ממשיכים במקום להפסיד</p>
+        <p>🛡️ <b>מגן חד-פעמי</b> — סופג מכה אחת</p>
+        <p>✨ <b>שעועית זהב</b> — נזק x3 לשלב שלם</p>
+      </div>
+      <div class="help-section">
+        <h3>🫘 שעועיות (מטבעות)</h3>
+        <p>אוסף שעועיות בשלב → מועברות לארנק הכולל בסיום השלב → משלמים איתן בחנות.</p>
+        <p><b>שים לב:</b> אם מתים באמצע שלב, מאבדים את השעועיות של השלב הזה.</p>
+      </div>
+      <button class="help-ok" onclick="document.getElementById('help-overlay').style.display='none';try{localStorage.setItem('theBehind_sawHelp','1');}catch(e){}">הבנתי! בוא נשחק</button>
+    </div>
   </div>
 
   <!-- Orientation hint -->
@@ -225,10 +298,10 @@ const SHOP_CONSUMABLES = [
   { key: 'goldenBean', name: 'שעועית זהב',  emoji: '✨',  cost: 500, desc: 'x3 נזק לשלב שלם' },
 ];
 const POWERUPS = [
-  { key: 'magicBean',  name: 'שעועית קסם',  color: 0x76ff03, duration: 15000 },
-  { key: 'goldBrush',  name: 'מברשת זהב',    color: 0xffd700, duration: 15000 },
-  { key: 'redPlunger', name: 'פומפה אדומה',  color: 0xff1744, duration: 15000 },
-  { key: 'stinkStar',  name: 'כוכב סרחון',   color: 0xffff00, duration: 15000 },
+  { key: 'magicBean',  name: 'שעועית קסם',  desc: 'x2 נזק + פיצוץ אזורי',      color: 0x76ff03, duration: 15000 },
+  { key: 'goldBrush',  name: 'מברשת זהב',    desc: 'x2 הגנה + חסינות לדחיפות',  color: 0xffd700, duration: 15000 },
+  { key: 'redPlunger', name: 'פומפה אדומה',  desc: 'x2 מהירות + שובל אש',       color: 0xff1744, duration: 15000 },
+  { key: 'stinkStar',  name: 'כוכב סרחון',   desc: 'חסינות מלאה — נזק ממגע!',   color: 0xffff00, duration: 15000 },
 ];
 
 // =============================================================
@@ -2737,6 +2810,20 @@ const TouchInput = {
   wireButtons() {
     const buttons = document.querySelectorAll('#touch-controls .touch-btn');
     buttons.forEach(btn => {
+      const action = btn.dataset.action;
+      if (action === 'fullscreen') {
+        btn.addEventListener('pointerdown', (e) => { e.preventDefault(); this.toggleFullscreen(); });
+        return;
+      }
+      if (action === 'help') {
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          const overlay = document.getElementById('help-overlay');
+          overlay.style.display = 'flex';
+        });
+        return;
+      }
+
       const key = btn.dataset.key;
       const keyCode = parseInt(btn.dataset.keycode, 10);
       let pressed = false;
@@ -2770,6 +2857,46 @@ const TouchInput = {
     });
   },
 
+  toggleFullscreen() {
+    const el = document.documentElement;
+    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    if (!isFs) {
+      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (req) {
+        try {
+          const result = req.call(el);
+          if (result && result.then) {
+            result.then(() => {
+              if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+              }
+            }).catch(() => this._showFsHint(isIOS));
+          }
+        } catch(e) {
+          this._showFsHint(isIOS);
+        }
+      } else {
+        this._showFsHint(isIOS);
+      }
+      window.scrollTo(0, 1); // hide URL bar on scroll-capable mobile browsers
+    } else {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) exit.call(document);
+    }
+  },
+  _showFsHint(isIOS) {
+    const msg = isIOS
+      ? 'iOS: לחץ על כפתור "שתף" בסאפרי ואז "Add to Home Screen" לחוויית מסך מלא 🏠'
+      : 'הדפדפן לא תומך במסך מלא — נסה דפדפן אחר';
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:#fff;padding:16px 24px;border-radius:8px;z-index:1000;max-width:80%;text-align:center;font-size:15px;border:2px solid #ffd700';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4500);
+  },
+
   updateOrientation() {
     if (!this.isMobile) return;
     const portrait = window.innerHeight > window.innerWidth;
@@ -2778,10 +2905,19 @@ const TouchInput = {
 };
 
 TouchInput.detect();
+// Always wire up buttons so a desktop user can click the help button too
+TouchInput.wireButtons();
 if (TouchInput.isMobile) {
-  TouchInput.wireButtons();
   TouchInput.updateOrientation();
 }
+
+// Auto-show help overlay on first visit (persisted via localStorage)
+try {
+  if (!localStorage.getItem('theBehind_sawHelp')) {
+    const overlay = document.getElementById('help-overlay');
+    if (overlay) overlay.style.display = 'flex';
+  }
+} catch(e) {}
 
 // Always refresh Phaser's scale on viewport changes (handles orientation + window resize + fullscreen)
 const _refreshScale = () => {
@@ -6287,8 +6423,23 @@ function collectPowerUp(p, pickup) {
   const px = pickup.x, py = pickup.y;
   pickup.destroy();
   spawnSparkle(scene, px, py);
-  floatText(scene, px, py - 20, puDef.name + '!', '#' + puDef.color.toString(16).padStart(6, '0'));
   AudioSys.sfxPowerUp();
+
+  // Big centered banner showing name + effect description (stays 2.5 sec)
+  const colorHex = '#' + puDef.color.toString(16).padStart(6, '0');
+  const bannerBg = scene.add.rectangle(W/2, 110, 480, 72, 0x000000, 0.75)
+    .setScrollFactor(0).setDepth(950).setStrokeStyle(3, puDef.color);
+  const bannerName = scene.add.text(W/2, 94, '✨ ' + puDef.name + ' ✨', {
+    font: 'bold 22px sans-serif', color: colorHex, stroke: '#000', strokeThickness: 4
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(951);
+  const bannerDesc = scene.add.text(W/2, 124, puDef.desc + '  (15 שניות)', {
+    font: 'bold 15px sans-serif', color: '#ffffff', stroke: '#000', strokeThickness: 3
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(951);
+  scene.tweens.add({
+    targets: [bannerBg, bannerName, bannerDesc],
+    alpha: 0, duration: 500, delay: 2000,
+    onComplete: () => { bannerBg.destroy(); bannerName.destroy(); bannerDesc.destroy(); }
+  });
 
   activePowerUp = {
     key: puDef.key,
