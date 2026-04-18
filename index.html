@@ -468,14 +468,21 @@ const AudioSys = {
   sfxShield()  { this.beep(784, 0.08, 'square', 0.25, 1175); this.beep(1175, 0.1, 'square', 0.22, 1568); },
   sfxExtraLife(){ [523, 659, 784, 988].forEach((f, i) => setTimeout(() => this.beep(f, 0.1, 'square', 0.22), i * 60)); },
 
-  // ---- MUSIC (HTML5 audio, playlist of MP3 tracks) ----
-  musicEnabled: true,       // user-facing music on/off (independent of master mute)
-  musicTracks: [],          // array of HTMLAudioElement
+  // ---- MUSIC (HTML5 audio) ----
+  // Three track types:
+  //   - Background playlist (music1/2/3.mp3) for menus + normal gameplay
+  //   - Boss track (boss.mp3) loops during boss fights
+  //   - Victory track (boss-victory.mp3) plays once after boss defeat, then returns to bg
+  musicEnabled: true,
+  musicTracks: [],
+  bossTrack: null,
+  victoryTrack: null,
   musicVolume: 0.4,
   currentTrackIdx: 0,
 
   initMusicTracks() {
     if (this.musicTracks.length) return;
+    // Background playlist
     const urls = ['audio/music1.mp3', 'audio/music2.mp3', 'audio/music3.mp3'];
     this.musicTracks = urls.map(url => {
       const a = new Audio(url);
@@ -483,20 +490,41 @@ const AudioSys = {
       a.volume = this.musicVolume;
       return a;
     });
-    // When a track ends, move to the next and play it
-    this.musicTracks.forEach((a, i) => {
+    this.musicTracks.forEach(a => {
       a.addEventListener('ended', () => {
         if (!this.musicEnabled || this.muted) return;
-        if (this.currentMusicKey == null) return;
+        if (this.currentMusicKey == null || this.currentMusicKey === 'boss' || this.currentMusicKey === 'victory') return;
         this.currentTrackIdx = (this.currentTrackIdx + 1) % this.musicTracks.length;
         this.playCurrentTrack();
       });
     });
-    // restore music-enabled state
+    // Boss fight track — loops until victory/defeat
+    this.bossTrack = new Audio('audio/boss.mp3');
+    this.bossTrack.loop = true;
+    this.bossTrack.preload = 'auto';
+    this.bossTrack.volume = this.musicVolume;
+    // Victory jingle — plays once, then returns to background playlist
+    this.victoryTrack = new Audio('audio/boss-victory.mp3');
+    this.victoryTrack.preload = 'auto';
+    this.victoryTrack.volume = this.musicVolume * 1.1; // slightly louder (celebration)
+    this.victoryTrack.addEventListener('ended', () => {
+      if (this.currentMusicKey === 'victory') {
+        // Back to normal gameplay playlist
+        this.currentMusicKey = 'bg';
+        if (this.musicEnabled && !this.muted) this.playCurrentTrack();
+      }
+    });
+    // Restore music-enabled state from localStorage
     try {
       const saved = localStorage.getItem('theBehind_music');
       if (saved === '0') this.musicEnabled = false;
     } catch(e) {}
+  },
+
+  _pauseAllTracks() {
+    this.musicTracks.forEach(a => { try { a.pause(); } catch(e) {} });
+    if (this.bossTrack) try { this.bossTrack.pause(); } catch(e) {}
+    if (this.victoryTrack) try { this.victoryTrack.pause(); } catch(e) {}
   },
 
   playCurrentTrack() {
@@ -504,34 +532,50 @@ const AudioSys = {
     const a = this.musicTracks[this.currentTrackIdx];
     if (!a) return;
     a.volume = this.musicVolume;
-    // Try to play; browser may block until user gesture — we call resume() on init which helps
     const p = a.play();
-    if (p && p.catch) p.catch(() => {}); // swallow autoplay errors silently
+    if (p && p.catch) p.catch(() => {});
   },
 
-  // Called from the game with keys like 'menu' / 'world1' / 'boss' etc.
-  // We keep the key to know *something* is playing, but the actual audio is just the playlist.
+  // Called with keys: 'menu' / 'world1/2/3' → background playlist
+  //                   'boss' → boss fight track
+  //                   'victory' → boss defeat jingle (auto-returns to playlist)
   playMusic(key) {
     this.initMusicTracks();
     if (this.currentMusicKey === key && this.isMusicPlaying()) return;
+
+    this._pauseAllTracks();
     this.currentMusicKey = key;
-    // If paused, resume current track; if nothing is playing, start from current index
-    const a = this.musicTracks[this.currentTrackIdx];
-    if (a && a.paused) this.playCurrentTrack();
+    if (!this.musicEnabled || this.muted) return;
+
+    if (key === 'boss') {
+      try { this.bossTrack.currentTime = 0; } catch(e) {}
+      const p = this.bossTrack.play();
+      if (p && p.catch) p.catch(() => {});
+    } else if (key === 'victory') {
+      try { this.victoryTrack.currentTime = 0; } catch(e) {}
+      const p = this.victoryTrack.play();
+      if (p && p.catch) p.catch(() => {});
+    } else {
+      // Any other key → background playlist
+      this.playCurrentTrack();
+    }
   },
 
   isMusicPlaying() {
+    if (this.bossTrack && !this.bossTrack.paused) return true;
+    if (this.victoryTrack && !this.victoryTrack.paused) return true;
     return this.musicTracks.some(a => !a.paused && !a.ended);
   },
 
   stopMusic() {
     this.currentMusicKey = null;
-    this.musicTracks.forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e) {} });
+    this._pauseAllTracks();
+    this.musicTracks.forEach(a => { try { a.currentTime = 0; } catch(e) {} });
+    if (this.bossTrack) try { this.bossTrack.currentTime = 0; } catch(e) {}
+    if (this.victoryTrack) try { this.victoryTrack.currentTime = 0; } catch(e) {}
   },
 
-  pauseMusic() {
-    this.musicTracks.forEach(a => { try { a.pause(); } catch(e) {} });
-  },
+  pauseMusic() { this._pauseAllTracks(); },
 
   setMusicEnabled(enabled) {
     this.musicEnabled = !!enabled;
@@ -539,13 +583,12 @@ const AudioSys = {
     if (!this.musicEnabled) {
       this.pauseMusic();
     } else if (this.currentMusicKey) {
-      this.playCurrentTrack();
+      // Resume whichever track matches the current key
+      this.playMusic(this.currentMusicKey);
     }
   },
 
-  toggleMusic() {
-    this.setMusicEnabled(!this.musicEnabled);
-  }
+  toggleMusic() { this.setMusicEnabled(!this.musicEnabled); }
 };
 
 // Extend setMuted so mute also pauses music (SFX are silenced by masterGain; MP3s aren't routed through it)
@@ -7491,11 +7534,8 @@ function defeatBoss(scene) {
   bossHpBar.setVisible(false);
   bossNameText.setVisible(false);
 
-  // boss defeat sound + restore level music
-  AudioSys.sfxBossDefeat();
-  const lvl = LEVELS[currentLevelIdx];
-  const worldKey = lvl && lvl._worldIdx !== undefined ? 'world' + (lvl._worldIdx + 1) : 'world1';
-  AudioSys.playMusic(worldKey);
+  // Boss victory music (plays once, then auto-returns to background playlist when it ends)
+  AudioSys.playMusic('victory');
 
   // boss death animation: spin + shrink + fade
   scene.tweens.add({
