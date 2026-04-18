@@ -2844,9 +2844,10 @@ const config = {
   backgroundColor: '#87ceeb',
   pixelArt: false,
   scale: {
-    // ENVELOP fills the viewport on mobile (some edges cropped) — no letterbox.
-    // FIT preserves full game area with letterbox on desktop.
-    mode: _isMobileForScale ? Phaser.Scale.ENVELOP : Phaser.Scale.FIT,
+    // FIT preserves the full game area (no cropping of HUD or pits).
+    // On mobile this adds small black bars on the sides, but every
+    // gameplay element stays visible — which matters for platforming.
+    mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
   physics: { default: 'arcade', arcade: { gravity: { y: 900 }, debug: false } },
