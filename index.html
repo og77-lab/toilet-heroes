@@ -46,40 +46,47 @@
     transform: scale(0.9);
   }
 
-  /* Virtual joystick (bottom-left) */
+  /* Virtual joystick (bottom-left) — larger, easier to hit */
   #joystick {
-    position: absolute; bottom: 16px; left: 16px;
-    width: 110px; height: 110px;
+    position: absolute; bottom: 14px; left: 14px;
+    width: 130px; height: 130px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     pointer-events: auto;
     touch-action: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.45);
     backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  }
+  /* Invisible extended hit area around the joystick for easier finger placement */
+  #joystick::before {
+    content: "";
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
   }
   #joystick-knob {
     position: absolute;
-    width: 48px; height: 48px;
+    width: 56px; height: 56px;
     border-radius: 50%;
-    background: rgba(255, 235, 59, 0.5);
+    background: rgba(255, 235, 59, 0.55);
     border: 2px solid #ffeb3b;
     left: 50%; top: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
     pointer-events: none;
     transition: background 80ms;
   }
   #joystick.active #joystick-knob { background: rgba(255, 235, 59, 0.8); }
 
-  /* Action buttons — compact cluster bottom-right */
+  /* Action buttons — bigger hit areas on mobile */
   #btn-jump, #btn-fire, #btn-special { touch-action: none; }
   /* Jump = primary anchor in the corner */
-  #btn-jump    { width: 64px; height: 64px; font-size: 13px; bottom: 8px;  right: 8px;   background: rgba(76, 175, 80, 0.4); border-color: #4caf50; }
+  #btn-jump    { width: 72px; height: 72px; font-size: 14px; bottom: 10px;  right: 10px;   background: rgba(76, 175, 80, 0.45); border-color: #4caf50; }
   /* Fire directly above Jump */
-  #btn-fire    { width: 52px; height: 52px; font-size: 12px; bottom: 82px; right: 14px;  background: rgba(255, 82, 82, 0.4); border-color: #ff5252; }
+  #btn-fire    { width: 58px; height: 58px; font-size: 13px; bottom: 92px;  right: 18px;   background: rgba(255, 82, 82, 0.45); border-color: #ff5252; }
   /* Special to the left of Jump */
-  #btn-special { width: 48px; height: 48px; font-size: 11px; bottom: 16px; right: 80px;  background: rgba(255, 152, 0, 0.4); border-color: #ff9800; }
+  #btn-special { width: 54px; height: 54px; font-size: 12px; bottom: 20px;  right: 90px;   background: rgba(255, 152, 0, 0.45); border-color: #ff9800; }
 
   /* Menu buttons (top-right) — tiny icons */
   .menu-btn { width: 32px; height: 32px; font-size: 14px; border-radius: 8px; }
@@ -2906,7 +2913,7 @@ const TouchInput = {
 
     let touchId = null;
     let state = { left: false, right: false, up: false, down: false };
-    const THRESHOLD = 0.35; // fraction of radius before direction triggers
+    const THRESHOLD = 0.22; // fraction of radius before direction triggers — lower = more responsive
     const self = this;
 
     const updateDirs = (dx, dy) => {
@@ -5283,101 +5290,206 @@ function drawBackground(scene, lvl) {
     // ===================== WORLD 2 — SEWER =====================
 
     case 'sewerEntry': {
-      // Light from above (viewport-fixed)
-      bgGfx(0, -85, g => {
-        g.fillStyle(0x87ceeb, 0.15);
-        g.fillTriangle(W/2 - 80, 0, W/2 + 80, 0, W/2, H);
-        g.fillStyle(0xb3e5fc, 0.04);
-        g.fillTriangle(W/2 - 120, 0, W/2 + 120, 0, W/2, H * 0.7);
+      // Dark gradient overlay (tunnel feel)
+      bgRect(W/2, H/2, W * 2, H * 2, 0x1a1a2e, 0.4, 0, -92);
+      // Distant tunnel depth — multi-layer for depth perception
+      bgGfx(0.05, -88, g => {
+        g.fillStyle(0x000000, 0.5);
+        g.fillEllipse(W/2, H/2, W * 0.8, H * 0.9);
+        g.fillStyle(0x1a237e, 0.3);
+        g.fillEllipse(W/2, H/2, W * 0.65, H * 0.75);
       });
-      // Brick ceiling — scaled
-      bgGfx(0.15, -70, g => {
-        const bLen = LEVEL_W * 2;
-        g.fillStyle(0x3e2723, 0.3);
-        g.fillRect(0, 0, bLen, 45);
-        g.fillStyle(0x4e342e, 0.2);
-        for (let y = 0; y < 45; y += 10) {
-          const off = (y / 10 % 2) * 12;
-          for (let x = 0; x < bLen; x += 24) g.fillRect(x + off, y, 22, 8);
+      // Street light shaft from above
+      bgGfx(0, -85, g => {
+        g.fillStyle(0xfff59d, 0.12);
+        g.fillTriangle(W/2 - 60, 0, W/2 + 60, 0, W/2, H * 0.85);
+        g.fillStyle(0xffff8d, 0.08);
+        g.fillTriangle(W/2 - 100, 0, W/2 + 100, 0, W/2, H);
+      });
+      // Floating dust particles in light
+      bgGfx(0.1, -82, g => {
+        g.fillStyle(0xfff9c4, 0.4);
+        for (let i = 0; i < 30; i++) {
+          const x = W/2 + (Math.sin(i * 1.7) * 90);
+          const y = (i * 47) % H;
+          g.fillCircle(x, y, 1.5);
         }
       });
-      // Ladder (viewport-fixed)
-      bgGfx(0.1, -65, g => {
-        g.fillStyle(0x9e9e9e, 0.25);
-        g.fillRect(W/2 - 16, 0, 3, 140);
-        g.fillRect(W/2 + 13, 0, 3, 140);
-        for (let y = 10; y < 140; y += 25) g.fillRect(W/2 - 16, y, 32, 3);
+      // Brick ceiling with varied coloring
+      bgGfx(0.15, -70, g => {
+        const bLen = LEVEL_W * 2;
+        g.fillStyle(0x2d1b0e, 0.85);
+        g.fillRect(0, 0, bLen, 55);
+        // brick courses with highlight
+        for (let y = 0; y < 55; y += 11) {
+          const off = (y / 11 % 2) * 13;
+          for (let x = 0; x < bLen; x += 26) {
+            g.fillStyle(0x4e342e, 0.7);
+            g.fillRect(x + off, y, 24, 9);
+            g.fillStyle(0x3e2723, 0.5);
+            g.fillRect(x + off, y + 8, 24, 1);
+          }
+        }
+        // Dripping stain streaks
+        g.fillStyle(0x1b5e20, 0.3);
+        for (let i = 0; i < bLen / 280; i++) {
+          g.fillRect(i * 280 + 60, 45, 3, 15 + (i % 3) * 8);
+        }
       });
-      // Dripping water
+      // Rusty ladder (more detailed)
+      bgGfx(0.1, -65, g => {
+        g.fillStyle(0x795548, 0.7);
+        g.fillRect(W/2 - 17, 0, 4, 160);
+        g.fillRect(W/2 + 13, 0, 4, 160);
+        g.fillStyle(0x8d6e63, 0.6);
+        for (let y = 10; y < 160; y += 24) g.fillRect(W/2 - 17, y, 34, 4);
+      });
+      // Dripping water with splashes
       bgGfx(0.2, -58, g => {
-        const dripCount = Math.ceil(LEVEL_W / 300);
+        const dripCount = Math.ceil(LEVEL_W / 280);
         for (let i = 0; i < dripCount; i++) {
-          g.fillStyle(0x4fc3f7, 0.15);
-          g.fillRect(i * 300 + 140, 45, 2, 8 + (i % 3) * 5);
-          g.fillCircle(i * 300 + 141, 55 + (i % 3) * 5, 2);
+          g.fillStyle(0x4fc3f7, 0.5);
+          g.fillRect(i * 280 + 140, 55, 3, 12 + (i % 3) * 6);
+          g.fillStyle(0x81d4fa, 0.6);
+          g.fillCircle(i * 280 + 141, 72 + (i % 3) * 6, 3);
+        }
+      });
+      // Green slime patches on walls
+      bgGfx(0.18, -60, g => {
+        g.fillStyle(0x33691e, 0.35);
+        for (let i = 0; i < LEVEL_W / 450; i++) {
+          const x = i * 450 + 220;
+          const y = 60 + (i % 3) * 25;
+          g.fillEllipse(x, y, 55, 18);
+          g.fillEllipse(x + 8, y + 8, 30, 12);
         }
       });
       break;
     }
 
     case 'sewerUpper': {
-      // Pipes — scaled
-      bgGfx(0.15, -70, g => {
-        const pLen = LEVEL_W * 2;
-        g.fillStyle(0x455a64, 0.25);
-        g.fillRect(0, 8, pLen, 10);
-        g.fillRect(0, 35, pLen, 6);
-        const joints = Math.ceil(LEVEL_W / 280);
-        for (let i = 0; i < joints; i++) {
-          g.fillStyle(0x546e7a, 0.2);
-          g.fillRect(i * 280, 0, 8, 60);
-          g.fillStyle(0x607d8b, 0.2);
-          g.fillRect(i * 280 - 2, 30, 12, 8);
+      bgRect(W/2, H/2, W * 2, H * 2, 0x263238, 0.35, 0, -92);
+      // Distant silhouettes of piping infrastructure
+      bgGfx(0.08, -85, g => {
+        g.fillStyle(0x000000, 0.5);
+        for (let i = 0; i < LEVEL_W / 600; i++) {
+          const x = i * 600 + 200;
+          g.fillRect(x, H * 0.3, 60, H * 0.5);
+          g.fillCircle(x + 30, H * 0.3, 40);
         }
       });
-      // Drip drops — scaled
-      bgGfx(0.25, -60, g => {
-        g.fillStyle(0x4fc3f7, 0.25);
-        const drips = Math.ceil(LEVEL_W / 160);
-        for (let i = 0; i < drips; i++) g.fillCircle(i * 160 + 30, 50 + (i % 4) * 5, 2);
+      // Big industrial pipes with depth
+      bgGfx(0.15, -70, g => {
+        const pLen = LEVEL_W * 2;
+        // main pipe
+        g.fillStyle(0x37474f, 0.7);
+        g.fillRect(0, 8, pLen, 16);
+        // highlight on top
+        g.fillStyle(0x546e7a, 0.6);
+        g.fillRect(0, 8, pLen, 3);
+        // secondary pipe
+        g.fillStyle(0x455a64, 0.6);
+        g.fillRect(0, 42, pLen, 10);
+        g.fillStyle(0x607d8b, 0.5);
+        g.fillRect(0, 42, pLen, 2);
+        // joints + valves
+        const joints = Math.ceil(LEVEL_W / 260);
+        for (let i = 0; i < joints; i++) {
+          g.fillStyle(0x263238, 0.7);
+          g.fillRect(i * 260, 0, 12, 65);
+          g.fillStyle(0xff5722, 0.5);
+          g.fillCircle(i * 260 + 5, 15, 5);
+        }
       });
-      // Puddles at ground level
+      // Dripping with chain of drops
+      bgGfx(0.25, -60, g => {
+        const drips = Math.ceil(LEVEL_W / 140);
+        for (let i = 0; i < drips; i++) {
+          g.fillStyle(0x4fc3f7, 0.6);
+          g.fillCircle(i * 140 + 30, 55 + (i % 4) * 4, 2);
+          g.fillStyle(0x81d4fa, 0.4);
+          g.fillCircle(i * 140 + 30, 70 + (i % 4) * 4, 1.5);
+        }
+      });
+      // Dirty puddles with reflections
       bgGfx(0.3, -50, g => {
-        const pudCount = Math.ceil(LEVEL_W / 500);
+        const pudCount = Math.ceil(LEVEL_W / 400);
         for (let i = 0; i < pudCount; i++) {
-          g.fillStyle(0x37474f, 0.1);
-          g.fillEllipse(i * 500 + 250, H - 58, 35 + (i % 3) * 10, 4);
+          g.fillStyle(0x1c2833, 0.55);
+          g.fillEllipse(i * 400 + 200, H - 58, 45 + (i % 3) * 15, 6);
+          g.fillStyle(0x37474f, 0.3);
+          g.fillEllipse(i * 400 + 200, H - 60, 35 + (i % 3) * 10, 3);
+        }
+      });
+      // Graffiti spots on far walls
+      bgGfx(0.1, -78, g => {
+        for (let i = 0; i < LEVEL_W / 800; i++) {
+          const x = i * 800 + 150;
+          g.fillStyle([0xe91e63, 0xff9800, 0x00bcd4][i % 3], 0.25);
+          g.fillRect(x, H * 0.5, 35, 25);
         }
       });
       break;
     }
 
     case 'sewerDeep': {
-      bgRect(W/2, H/2, W * 2, H * 2, 0x0d0d1a, 0.25, 0, -92);
-      // Moss/slime drips — scaled
-      bgGfx(0.2, -70, g => {
-        g.fillStyle(0x2e7d32, 0.2);
-        const mossCount = Math.ceil(LEVEL_W / 130);
-        for (let i = 0; i < mossCount; i++) {
-          g.fillRect(i * 130 + 20, 0, 2, 30 + (i % 4) * 12);
-          g.fillCircle(i * 130 + 21, 33 + (i % 4) * 12, 3);
+      // Very dark with a subtle purple tint
+      bgRect(W/2, H/2, W * 2, H * 2, 0x0a0014, 0.55, 0, -92);
+      // Claustrophobic cave edges (dark vignette on sides)
+      bgGfx(0, -90, g => {
+        g.fillStyle(0x000000, 0.4);
+        g.fillRect(0, 0, 80, H);
+        g.fillRect(W - 80, 0, 80, H);
+      });
+      // Cave rock silhouette (stalactites)
+      bgGfx(0.1, -80, g => {
+        g.fillStyle(0x1a0d0d, 0.8);
+        const sLen = LEVEL_W * 2;
+        g.fillRect(0, 0, sLen, 35);
+        const stalCount = Math.ceil(LEVEL_W / 90);
+        for (let i = 0; i < stalCount; i++) {
+          const sx = i * 90;
+          g.fillTriangle(sx, 35, sx + 14, 35, sx + 7, 55 + (i % 3) * 12);
         }
       });
-      // Water channel — scaled
+      // Hanging slime/moss
+      bgGfx(0.2, -70, g => {
+        const mossCount = Math.ceil(LEVEL_W / 100);
+        for (let i = 0; i < mossCount; i++) {
+          g.fillStyle(0x1b5e20, 0.65);
+          g.fillRect(i * 100 + 20, 15, 3, 40 + (i % 4) * 15);
+          g.fillStyle(0x2e7d32, 0.55);
+          g.fillCircle(i * 100 + 21, 58 + (i % 4) * 15, 4);
+          g.fillCircle(i * 100 + 21, 62 + (i % 4) * 15, 2);
+        }
+      });
+      // Bioluminescent mushrooms/algae glow
+      bgGfx(0.15, -62, g => {
+        const glowCount = Math.ceil(LEVEL_W / 350);
+        for (let i = 0; i < glowCount; i++) {
+          const gx = i * 350 + 180;
+          const gy = H - 90 + (i % 3) * 15;
+          // glow halo
+          g.fillStyle(0x00e5ff, 0.12);
+          g.fillCircle(gx, gy, 40);
+          g.fillStyle(0x18ffff, 0.2);
+          g.fillCircle(gx, gy, 20);
+          g.fillStyle(0x84ffff, 0.6);
+          g.fillCircle(gx, gy, 6);
+        }
+      });
+      // Toxic water channel
       bgGfx(0.3, -55, g => {
         const wLen = LEVEL_W * 4;
-        g.fillStyle(0x1a5276, 0.2);
-        g.fillRect(0, H - 68, wLen, 22);
-        g.fillStyle(0x2980b9, 0.1);
-        const ripples = Math.ceil(LEVEL_W / 100);
-        for (let i = 0; i < ripples; i++) g.fillEllipse(i * 100, H - 60, 50, 5);
-      });
-      // Faint bioluminescent glow
-      bgGfx(0.15, -62, g => {
-        const glowCount = Math.ceil(LEVEL_W / 800);
-        for (let i = 0; i < glowCount; i++) {
-          g.fillStyle(0x76ff03, 0.04);
-          g.fillCircle(i * 800 + 400, H - 80, 30);
+        g.fillStyle(0x1b5e20, 0.5);
+        g.fillRect(0, H - 72, wLen, 28);
+        g.fillStyle(0x2e7d32, 0.35);
+        g.fillRect(0, H - 72, wLen, 3);
+        // Bubbles in water
+        const bubbles = Math.ceil(LEVEL_W / 80);
+        for (let i = 0; i < bubbles; i++) {
+          g.fillStyle(0xaeea00, 0.4);
+          g.fillCircle(i * 80 + 40, H - 63 + (i % 4) * 3, 2 + (i % 2));
         }
       });
       break;
@@ -5597,101 +5709,196 @@ function drawBackground(scene, lvl) {
     // ===================== WORLD 3 — DIGESTIVE =====================
 
     case 'esophagus': {
-      // Muscle wall folds — scaled
+      // Pink-red gradient base
+      bgRect(W/2, H/2, W * 2, H * 2, 0xb71c1c, 0.25, 0, -92);
+      bgRect(W/2, H/2, W * 2, H * 2, 0xff8a80, 0.08, 0, -91);
+      // Back wall tube perspective
+      bgGfx(0.05, -88, g => {
+        g.fillStyle(0x4e0000, 0.45);
+        g.fillEllipse(W/2, H/2, W * 0.85, H);
+        g.fillStyle(0x8e0000, 0.35);
+        g.fillEllipse(W/2, H/2, W * 0.6, H * 0.8);
+      });
+      // Muscle wall folds — larger, more pronounced
       bgGfx(0.15, -70, g => {
         const wLen = LEVEL_W * 2;
-        g.fillStyle(0xc62828, 0.3);
-        g.fillRect(0, 0, wLen, 30);
-        const foldCount = Math.ceil(LEVEL_W / 120);
+        // Top muscle band
+        g.fillStyle(0xc62828, 0.7);
+        g.fillRect(0, 0, wLen, 42);
+        const foldCount = Math.ceil(LEVEL_W / 110);
         for (let i = 0; i < foldCount; i++) {
-          g.fillStyle(0xd32f2f, 0.2);
-          g.fillEllipse(i * 120, 33, 90, 25);
+          g.fillStyle(0xe53935, 0.5);
+          g.fillEllipse(i * 110, 40, 100, 30);
+          // highlight on fold
+          g.fillStyle(0xef5350, 0.35);
+          g.fillEllipse(i * 110, 35, 80, 10);
         }
-        g.fillStyle(0xc62828, 0.25);
-        for (let i = 0; i < foldCount; i++)
-          g.fillEllipse(i * 120 + 60, H - 62, 90, 22);
+        // Bottom muscle band
+        g.fillStyle(0xc62828, 0.65);
+        g.fillRect(0, H - 50, wLen, 50);
+        for (let i = 0; i < foldCount; i++) {
+          g.fillStyle(0xe53935, 0.5);
+          g.fillEllipse(i * 110 + 55, H - 52, 100, 30);
+        }
       });
-      // Vertical muscle fibers — scaled
+      // Pulsing vertical muscle fibers
       bgGfx(0.2, -65, g => {
-        g.fillStyle(0xb71c1c, 0.1);
-        const fiberCount = Math.ceil(LEVEL_W / 160);
-        for (let i = 0; i < fiberCount; i++) g.fillRect(i * 160, 0, 5, H);
-      });
-      // Mucus drips — scaled
-      bgGfx(0.25, -58, g => {
-        g.fillStyle(0xef9a9a, 0.15);
-        const dripCount = Math.ceil(LEVEL_W / 160);
-        for (let i = 0; i < dripCount; i++) {
-          const dx = i * 160 + 40;
-          g.fillRect(dx, 30, 2, 20 + (i % 3) * 10);
-          g.fillCircle(dx + 1, 52 + (i % 3) * 10, 2);
+        const fiberCount = Math.ceil(LEVEL_W / 130);
+        for (let i = 0; i < fiberCount; i++) {
+          g.fillStyle(0x880e1f, 0.3);
+          g.fillRect(i * 130, 0, 8, H);
+          g.fillStyle(0xb71c1c, 0.2);
+          g.fillRect(i * 130 + 2, 0, 4, H);
         }
       });
-      // Wet sheen
-      bgGfx(0.1, -62, g => {
-        g.fillStyle(0xef9a9a, 0.03);
-        g.fillRect(0, H * 0.3, LEVEL_W * 2, H * 0.2);
+      // Glossy mucus highlights (wet look)
+      bgGfx(0.2, -60, g => {
+        for (let i = 0; i < LEVEL_W / 180; i++) {
+          g.fillStyle(0xff8a80, 0.3);
+          g.fillEllipse(i * 180 + 90, H/2 + Math.sin(i) * 80, 70, 8);
+        }
+      });
+      // Mucus drips from ceiling
+      bgGfx(0.25, -58, g => {
+        g.fillStyle(0xf8bbd0, 0.55);
+        const dripCount = Math.ceil(LEVEL_W / 140);
+        for (let i = 0; i < dripCount; i++) {
+          const dx = i * 140 + 40;
+          g.fillRect(dx, 42, 3, 25 + (i % 3) * 15);
+          g.fillCircle(dx + 1, 67 + (i % 3) * 15, 4);
+        }
       });
       break;
     }
 
     case 'stomach': {
-      // Stomach wall folds — scaled
-      bgGfx(0.1, -70, g => {
-        g.fillStyle(0xc62828, 0.25);
-        const foldCount = Math.ceil(LEVEL_W / 130);
-        for (let i = 0; i < foldCount; i++) g.fillEllipse(i * 130, 18, 100, 40);
+      // Acid-lit deep red base
+      bgRect(W/2, H/2, W * 2, H * 2, 0x5d0f0f, 0.45, 0, -92);
+      // Yellow-green acid glow from below
+      bgGfx(0, -90, g => {
+        g.fillStyle(0xaeea00, 0.15);
+        g.fillRect(0, H * 0.6, W, H * 0.4);
+        g.fillStyle(0xcddc39, 0.1);
+        g.fillRect(0, H * 0.75, W, H * 0.25);
       });
-      // Acid pool — scaled
+      // Large stomach wall chambers (back silhouette)
+      bgGfx(0.08, -85, g => {
+        g.fillStyle(0x3e0000, 0.6);
+        for (let i = 0; i < LEVEL_W / 500; i++) {
+          g.fillEllipse(i * 500 + 250, H/2, 280, H * 0.8);
+        }
+      });
+      // Ribbed stomach wall folds — prominent and detailed
+      bgGfx(0.15, -70, g => {
+        const foldCount = Math.ceil(LEVEL_W / 115);
+        for (let i = 0; i < foldCount; i++) {
+          // Upper band
+          g.fillStyle(0xb71c1c, 0.7);
+          g.fillEllipse(i * 115, 22, 110, 50);
+          g.fillStyle(0xc62828, 0.5);
+          g.fillEllipse(i * 115, 28, 90, 30);
+          g.fillStyle(0xe53935, 0.35);
+          g.fillEllipse(i * 115, 25, 60, 14);
+        }
+      });
+      // Bubbling acid pool with vibrant glow
       bgGfx(0.3, -55, g => {
         const aLen = LEVEL_W * 4;
-        g.fillStyle(0xcddc39, 0.2);
-        g.fillRect(0, H - 72, aLen, 28);
-        g.fillStyle(0xaeea00, 0.12);
-        const bubbleCount = Math.ceil(LEVEL_W / 140);
-        for (let i = 0; i < bubbleCount; i++) g.fillCircle(i * 140 + 30, H - 62 + (i % 3) * 4, 3 + (i % 2));
+        // Main acid layer
+        g.fillStyle(0x689f38, 0.55);
+        g.fillRect(0, H - 80, aLen, 36);
+        // Bright top layer
+        g.fillStyle(0xaeea00, 0.55);
+        g.fillRect(0, H - 80, aLen, 6);
+        g.fillStyle(0xccff90, 0.45);
+        g.fillRect(0, H - 78, aLen, 2);
+        // Rising bubbles
+        const bubbleCount = Math.ceil(LEVEL_W / 90);
+        for (let i = 0; i < bubbleCount; i++) {
+          g.fillStyle(0xccff90, 0.7);
+          g.fillCircle(i * 90 + 30, H - 70 + (i % 4) * 8, 3 + (i % 3));
+          g.fillStyle(0xf0f4c3, 0.5);
+          g.fillCircle(i * 90 + 30, H - 72 + (i % 4) * 8, 1);
+        }
       });
-      // Wall folds — scaled
+      // Veins pulsing along walls
       bgGfx(0.2, -60, g => {
-        g.fillStyle(0xd32f2f, 0.1);
-        const wallCount = Math.ceil(LEVEL_W / 280);
-        for (let i = 0; i < wallCount; i++) g.fillEllipse(i * 280, H/2, 50, H * 0.3);
+        const wallCount = Math.ceil(LEVEL_W / 250);
+        for (let i = 0; i < wallCount; i++) {
+          g.fillStyle(0x4a0000, 0.45);
+          g.fillEllipse(i * 250, H/2, 40, H * 0.4);
+          g.fillStyle(0x880e1f, 0.3);
+          g.fillRect(i * 250 - 2, 50, 4, H - 100);
+        }
       });
-      // Acid mist
+      // Thick acid mist
       bgGfx(0.2, -52, g => {
-        g.fillStyle(0xcddc39, 0.03);
-        g.fillRect(0, H - 100, LEVEL_W * 3, 40);
+        g.fillStyle(0xccff90, 0.1);
+        g.fillRect(0, H - 110, LEVEL_W * 3, 40);
+        g.fillStyle(0xaeea00, 0.06);
+        g.fillRect(0, H - 130, LEVEL_W * 3, 60);
       });
       break;
     }
 
     case 'intestine': {
-      // Wall lining — scaled
+      // Vivid pink base tone
+      bgRect(W/2, H/2, W * 2, H * 2, 0xad1457, 0.35, 0, -92);
+      bgRect(W/2, H/2, W * 2, H * 2, 0xf06292, 0.1, 0, -91);
+      // Tube perspective with depth
+      bgGfx(0.05, -88, g => {
+        g.fillStyle(0x4a0e28, 0.5);
+        g.fillEllipse(W/2, H/2, W * 0.9, H * 1.1);
+        g.fillStyle(0x880e4f, 0.4);
+        g.fillEllipse(W/2, H/2, W * 0.65, H * 0.85);
+      });
+      // Thick wall lining with color bands
       bgGfx(0.15, -70, g => {
         const wLen = LEVEL_W * 2;
-        g.fillStyle(0xd81b60, 0.25);
-        g.fillRect(0, 0, wLen, 28);
-        g.fillRect(0, H - 68, wLen, 28);
+        g.fillStyle(0xc2185b, 0.75);
+        g.fillRect(0, 0, wLen, 42);
+        g.fillStyle(0xd81b60, 0.5);
+        g.fillRect(0, 38, wLen, 6);
+        g.fillStyle(0xc2185b, 0.75);
+        g.fillRect(0, H - 64, wLen, 64);
+        g.fillStyle(0xd81b60, 0.5);
+        g.fillRect(0, H - 68, wLen, 4);
       });
-      // Villi — scaled
+      // Dense villi (finger-like projections) — top and bottom
       bgGfx(0.2, -65, g => {
-        g.fillStyle(0xec407a, 0.2);
-        const villiCount = Math.ceil(LEVEL_W / 70);
+        const villiCount = Math.ceil(LEVEL_W / 55);
         for (let i = 0; i < villiCount; i++) {
-          g.fillRect(i * 70 + 10, 25, 4, 14 + (i % 3) * 6);
-          g.fillCircle(i * 70 + 12, 41 + (i % 3) * 6, 4);
-        }
-        for (let i = 0; i < villiCount; i++) {
-          g.fillRect(i * 70 + 35, H - 80 - (i % 3) * 6, 4, 14 + (i % 3) * 6);
-          g.fillCircle(i * 70 + 37, H - 80 - (i % 3) * 6, 4);
+          const h = 22 + (i % 4) * 10;
+          const px = i * 55 + 12;
+          // top villi
+          g.fillStyle(0xec407a, 0.65);
+          g.fillRect(px, 30, 5, h);
+          g.fillStyle(0xf06292, 0.7);
+          g.fillCircle(px + 2, 30 + h, 5);
+          g.fillStyle(0xf48fb1, 0.5);
+          g.fillCircle(px + 2, 28 + h, 2);
+          // bottom villi
+          const py = H - 70 - h;
+          g.fillStyle(0xec407a, 0.65);
+          g.fillRect(px + 28, py, 5, h);
+          g.fillStyle(0xf06292, 0.7);
+          g.fillCircle(px + 30, py, 5);
         }
       });
-      // Mucus trails
+      // Mucus flowing trails
       bgGfx(0.25, -58, g => {
-        g.fillStyle(0xf48fb1, 0.05);
-        const trailCount = Math.ceil(LEVEL_W / 500);
-        for (let i = 0; i < trailCount; i++) {
-          g.fillEllipse(i * 500 + 250, H / 2, 60, 15);
+        for (let i = 0; i < LEVEL_W / 280; i++) {
+          g.fillStyle(0xffb3cc, 0.25);
+          g.fillEllipse(i * 280 + 140, H / 2 + Math.sin(i * 1.3) * 50, 80, 18);
+          g.fillStyle(0xffc1cc, 0.15);
+          g.fillEllipse(i * 280 + 140, H / 2 + Math.sin(i * 1.3) * 50, 50, 10);
+        }
+      });
+      // Pulsing red veins across center
+      bgGfx(0.18, -62, g => {
+        g.fillStyle(0x880e1f, 0.35);
+        for (let i = 0; i < LEVEL_W / 180; i++) {
+          g.fillRect(i * 180, H/2 + (i % 2) * 18 - 8, 180, 3);
         }
       });
       break;
@@ -8044,8 +8251,9 @@ function update(time, dt) {
       saveProgress();
       state = 'map';
       selectGroup.setVisible(false);
-      // default cursor to highest unlocked sublevel
-      mapSelectedIdx = highestUnlocked();
+      // Default cursor to level 1-1 so a fresh session starts at the beginning.
+      // User can navigate to any unlocked level via joystick / arrows.
+      mapSelectedIdx = 0;
       mapGroup.setVisible(true);
       scene._updateMap();
       AudioSys.playMusic('menu');
@@ -8150,7 +8358,17 @@ function update(time, dt) {
 
   // ----- PLAYER MOVEMENT -----
   const onGround = player.body.blocked.down || player.body.touching.down;
-  if (onGround) playerDoubleJumped = false;
+  if (onGround) {
+    playerDoubleJumped = false;
+    // Track last safe position — respawn here on accidental fall (not a pit)
+    const lvl = LEVELS[currentLevelIdx];
+    const pits = lvl && lvl.pits ? lvl.pits : [];
+    const overPit = pits.some(([a, b]) => player.x >= a - 24 && player.x < b + 24);
+    if (!overPit && player.y < H - 30) {
+      player._lastSafeX = player.x;
+      player._lastSafeY = player.y;
+    }
+  }
   if (cursors.left.isDown) {
     player.setVelocityX(-playerSpeed);
     player.flipX = false;
@@ -8374,12 +8592,17 @@ function update(time, dt) {
   });
 
   // ----- PIT FALL -----
+  // Respawn at last known safe position. Damage is light (10) so accidental
+  // falls don't kill you from a single mistake, especially on mobile.
   if (player.y > H + 60) {
-    takeDamage(scene, 25);
+    takeDamage(scene, 10);
     if (state !== 'playing') return; // endGame may have fired
-    player.setPosition(80, GROUND_Y - 60);
+    const safeX = player._lastSafeX || 80;
+    const safeY = (player._lastSafeY || (GROUND_Y - 60)) - 40;
+    player.setPosition(safeX, safeY);
     player.setVelocity(0, 0);
-    spawnPuff(scene, 80, GROUND_Y - 60, 0xff8a80);
+    spawnPuff(scene, safeX, safeY, 0xff8a80);
+    floatText(scene, safeX, safeY - 30, '-10', '#ff5252');
   }
 
   // ----- MISSILE HOMING + FLASK EXPLOSION -----
