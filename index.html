@@ -133,6 +133,13 @@
     cursor: pointer;
   }
   .help-ok:hover { background: #66bb6a; }
+  .help-reset {
+    display: block; margin: 12px auto 0;
+    background: transparent; border: 1px solid #ff5252; color: #ff5252;
+    padding: 8px 20px; border-radius: 8px; font-size: 13px;
+    cursor: pointer;
+  }
+  .help-reset:hover { background: rgba(255, 82, 82, 0.15); }
 
   /* Orientation hint (portrait on mobile) */
   #rotate-hint {
@@ -207,8 +214,24 @@
         <p><b>שים לב:</b> אם מתים באמצע שלב, מאבדים את השעועיות של השלב הזה.</p>
       </div>
       <button class="help-ok" onclick="document.getElementById('help-overlay').style.display='none';try{localStorage.setItem('theBehind_sawHelp','1');}catch(e){}">הבנתי! בוא נשחק</button>
+      <button class="help-reset" onclick="resetAllProgress()">🔄 התחל משחק חדש (אפס הכל)</button>
     </div>
   </div>
+
+  <script>
+    // Wipe all save data and reload — used by "New Game" buttons
+    function resetAllProgress() {
+      const ok = confirm('להתחיל משחק חדש? כל ההתקדמות, השעועיות, השדרוגים ופריטי החנות יימחקו.');
+      if (!ok) return;
+      try {
+        localStorage.removeItem('theBehind_save');
+        localStorage.removeItem('theBehind_muted');
+        localStorage.removeItem('theBehind_music');
+        localStorage.removeItem('theBehind_sawHelp');
+      } catch(e) {}
+      location.reload();
+    }
+  </script>
 
   <!-- Orientation hint -->
   <div id="rotate-hint">
@@ -6359,7 +6382,9 @@ function create() {
 
   // Mobile: tapping the game area during title/win/lose dismisses those screens
   // (equivalent to pressing SPACE). Won't fire during 'playing' or menu states.
-  scene.input.on('pointerdown', (pointer) => {
+  // Skip if user tapped an interactive object (e.g., reset button on title).
+  scene.input.on('pointerdown', (pointer, currentlyOver) => {
+    if (currentlyOver && currentlyOver.length > 0) return;
     if (state === 'title' || state === 'win' || state === 'lose') {
       if (window.TouchInput) {
         window.TouchInput.fireKey('keydown', ' ', 32);
@@ -6401,7 +6426,23 @@ function create() {
     font: 'bold 20px sans-serif', color: '#fff'
   }).setOrigin(0.5);
   scene.tweens.add({ targets: press, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
-  titleGroup.add([dim, title, subtitle, ctrls, press]);
+
+  // Reset / New Game button — visible only if there's saved progress
+  let hasSave = false;
+  try { hasSave = !!localStorage.getItem('theBehind_save'); } catch(e) {}
+  const resetBtn = scene.add.text(W/2, H/2 + 175,
+    hasSave ? '🔄 התחל משחק חדש (אפס שמירה)' : '',
+    { font: '15px sans-serif', color: '#ff8a80', backgroundColor: '#0008', padding: { x: 12, y: 6 } }
+  ).setOrigin(0.5);
+  if (hasSave) {
+    resetBtn.setInteractive({ useHandCursor: true });
+    resetBtn.on('pointerdown', (pointer, lx, ly, evt) => {
+      if (evt && evt.stopPropagation) evt.stopPropagation();
+      window.resetAllProgress();
+    });
+  }
+
+  titleGroup.add([dim, title, subtitle, ctrls, press, resetBtn]);
   // Title only shows on the very first session load
   if (hasShownTitle) titleGroup.setVisible(false);
 
