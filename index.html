@@ -4823,7 +4823,7 @@ function drawBackground(scene, lvl) {
   skyG.fillRect(0, 0, W, H);
 
   // ===== ATMOSPHERIC FOG (soft horizontal band near horizon) =====
-  const fogG = scene.add.graphics().setScrollFactor(0.05).setDepth(-94);
+  const fogG = scene.add.graphics().setScrollFactor(0.05, 1).setDepth(-94);
   fogG.fillStyle(gradPair[1], 0.25);
   fogG.fillRect(0, H * 0.55, W * 1.2, H * 0.25);
   fogG.fillStyle(gradPair[1], 0.12);
@@ -4837,7 +4837,7 @@ function drawBackground(scene, lvl) {
       const py = Math.random() * H;
       const size = partCfg.type === 'bubble' ? 3 + Math.random() * 4 : 1 + Math.random() * 2;
       const p = scene.add.circle(px, py, size, partCfg.color, 0.4)
-        .setScrollFactor(0.3 + Math.random() * 0.3)
+        .setScrollFactor(0.3 + Math.random() * 0.3, 1)
         .setDepth(-78);
       // Drift upward + fade
       const driftY = py - 80 - Math.random() * 60;
@@ -4868,15 +4868,20 @@ function drawBackground(scene, lvl) {
   vigG.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0, 0.35, 0, 0.35);
   vigG.fillRect(W - 80, 0, 80, H);
 
-  // Helper: add a simple colored rect as a background decoration
+  // Helper: add a simple colored rect as a background decoration.
+  // PARALLAX FIX: distant things scroll slowly horizontally but stay
+  // anchored to the world vertically. Only full-screen overlays
+  // (scroll === 0) get scrollFactor.y = 0; everything else uses Y = 1
+  // so backgrounds don't detach from the ground when the player jumps.
   function bgRect(x, y, w, h, color, alpha, scroll, depth) {
-    return scene.add.rectangle(x, y, w, h, color, alpha).setScrollFactor(scroll).setDepth(depth);
+    const sy = scroll === 0 ? 0 : 1;
+    return scene.add.rectangle(x, y, w, h, color, alpha).setScrollFactor(scroll, sy).setDepth(depth);
   }
-  // Helper: draw a graphics object as bg element
   function bgGfx(scroll, depth, drawFn) {
     const g = scene.add.graphics();
     drawFn(g);
-    g.setScrollFactor(scroll);
+    const sy = scroll === 0 ? 0 : 1;
+    g.setScrollFactor(scroll, sy);
     g.setDepth(depth);
     return g;
   }
@@ -4939,10 +4944,10 @@ function drawBackground(scene, lvl) {
       });
       // Far hills (existing assets, now with bigger contrast tint)
       for (let i = 0; i < Math.ceil(LEVEL_W / 500); i++)
-        scene.add.image(i * 500, H - 80, 'hill').setScrollFactor(0.3).setDepth(-50).setTint(lvl.hillTint1).setAlpha(0.7);
+        scene.add.image(i * 500, H - 80, 'hill').setScrollFactor(0.3, 1).setDepth(-50).setTint(lvl.hillTint1).setAlpha(0.7);
       // Near hills
       for (let i = 0; i < Math.ceil(LEVEL_W / 380); i++)
-        scene.add.image(i * 380 + 100, H - 50, 'hill').setScrollFactor(0.5).setScale(0.85).setTint(lvl.hillTint2).setDepth(-40).setAlpha(0.7);
+        scene.add.image(i * 380 + 100, H - 50, 'hill').setScrollFactor(0.5, 1).setScale(0.85).setTint(lvl.hillTint2).setDepth(-40).setAlpha(0.7);
       // Tree silhouettes between far hills and ground
       bgGfx(0.4, -45, g => {
         const treeCount = Math.ceil(LEVEL_W / 220);
@@ -4962,8 +4967,8 @@ function drawBackground(scene, lvl) {
       // Clouds — bigger, with shadow
       for (let i = 0; i < Math.ceil(LEVEL_W / 420); i++) {
         const cy = 50 + (i % 3) * 30;
-        scene.add.image(i * 420, cy, 'cloud').setScrollFactor(0.2).setDepth(-81).setAlpha(0.4).setTint(0x000000);
-        scene.add.image(i * 420, cy - 4, 'cloud').setScrollFactor(0.2).setDepth(-80).setAlpha(0.85).setTint(lvl.cloudColor);
+        scene.add.image(i * 420, cy, 'cloud').setScrollFactor(0.2, 1).setDepth(-81).setAlpha(0.4).setTint(0x000000);
+        scene.add.image(i * 420, cy - 4, 'cloud').setScrollFactor(0.2, 1).setDepth(-80).setAlpha(0.85).setTint(lvl.cloudColor);
       }
       // Ground-level grass tufts (more defined, layered)
       bgGfx(0.5, -38, g => {
@@ -4994,7 +4999,7 @@ function drawBackground(scene, lvl) {
     case 'garden': {
       // Clouds
       for (let i = 0; i < Math.ceil(LEVEL_W / 450); i++)
-        scene.add.image(i * 450, 40 + (i % 3) * 20, 'cloud').setScrollFactor(0.15).setDepth(-80).setAlpha(0.45).setTint(0xffffff);
+        scene.add.image(i * 450, 40 + (i % 3) * 20, 'cloud').setScrollFactor(0.15, 1).setDepth(-80).setAlpha(0.45).setTint(0xffffff);
       // Big sun (viewport-fixed)
       bgGfx(0, -78, g => {
         g.fillStyle(0xfff9c4, 0.08);
@@ -6081,7 +6086,7 @@ function drawBackground(scene, lvl) {
       });
       // Purple mist clouds — scaled
       for (let i = 0; i < Math.ceil(LEVEL_W / 330); i++)
-        scene.add.image(i * 330, H - 95, 'cloud').setScrollFactor(0.22).setDepth(-60).setAlpha(0.1).setTint(0x7c4dff);
+        scene.add.image(i * 330, H - 95, 'cloud').setScrollFactor(0.22, 1).setDepth(-60).setAlpha(0.1).setTint(0x7c4dff);
       break;
     }
 
@@ -6102,7 +6107,7 @@ function drawBackground(scene, lvl) {
       });
       // Toxic gas clouds — scaled
       for (let i = 0; i < Math.ceil(LEVEL_W / 280); i++)
-        scene.add.image(i * 280, H/2 + (i % 3) * 30, 'cloud').setScrollFactor(0.12).setDepth(-60).setAlpha(0.1).setTint(0xa5d6a7);
+        scene.add.image(i * 280, H/2 + (i % 3) * 30, 'cloud').setScrollFactor(0.12, 1).setDepth(-60).setAlpha(0.1).setTint(0xa5d6a7);
       break;
     }
 
@@ -6420,11 +6425,11 @@ function drawBackground(scene, lvl) {
 
     default: {
       for (let i = 0; i < Math.ceil(LEVEL_W / 500); i++)
-        scene.add.image(i * 500, H - 80, 'hill').setScrollFactor(0.3).setDepth(-50).setTint(lvl.hillTint1).setAlpha(0.45);
+        scene.add.image(i * 500, H - 80, 'hill').setScrollFactor(0.3, 1).setDepth(-50).setTint(lvl.hillTint1).setAlpha(0.45);
       for (let i = 0; i < Math.ceil(LEVEL_W / 380); i++)
-        scene.add.image(i * 380 + 100, H - 50, 'hill').setScrollFactor(0.5).setScale(0.8).setTint(lvl.hillTint2).setDepth(-40).setAlpha(0.35);
+        scene.add.image(i * 380 + 100, H - 50, 'hill').setScrollFactor(0.5, 1).setScale(0.8).setTint(lvl.hillTint2).setDepth(-40).setAlpha(0.35);
       for (let i = 0; i < Math.ceil(LEVEL_W / 420); i++)
-        scene.add.image(i * 420, 60 + (i % 3) * 30, 'cloud').setScrollFactor(0.2).setDepth(-80).setAlpha(0.4).setTint(lvl.cloudColor);
+        scene.add.image(i * 420, 60 + (i % 3) * 30, 'cloud').setScrollFactor(0.2, 1).setDepth(-80).setAlpha(0.4).setTint(lvl.cloudColor);
       break;
     }
   }
@@ -7995,6 +8000,12 @@ function hitEnemy(bullet, enemy) {
   enemy.setTint(0xff8888);
   scene.time.delayedCall(80, () => enemy && enemy.active && enemy.clearTint());
   floatText(scene, enemy.x, enemy.y - 30, '-' + playerBulletDamage, '#ffeb3b');
+  // Squash hit-reaction tween for visual feedback
+  scene.tweens.add({
+    targets: enemy,
+    scaleX: 1.25, scaleY: 0.78,
+    duration: 70, yoyo: true, ease: 'Quad.out'
+  });
 
   // AoE: damage nearby enemies too
   if (playerAoE > 0) {
@@ -9003,6 +9014,29 @@ function update(time, dt) {
     player.flipX = true;
   } else {
     player.setVelocityX(player.body.velocity.x * 0.8);
+  }
+
+  // Walk bob + tilt — subtle character animation while running on ground
+  const moving = Math.abs(player.body.velocity.x) > 30;
+  if (onGround && moving) {
+    if (player._walkPhase === undefined) player._walkPhase = 0;
+    player._walkPhase += dt * 0.018;
+    // Subtle vertical bob (1-2 px)
+    player.setScale(
+      1 + Math.abs(Math.sin(player._walkPhase) * 0.04),
+      1 - Math.abs(Math.sin(player._walkPhase) * 0.05)
+    );
+    // Slight forward lean based on direction
+    const lean = (player.flipX ? 1 : -1) * 4;
+    player.angle += (lean - player.angle) * 0.15;
+  } else if (onGround) {
+    // Reset to neutral when stopped
+    player.setScale(player.scaleX + (1 - player.scaleX) * 0.2, player.scaleY + (1 - player.scaleY) * 0.2);
+    player.angle += (0 - player.angle) * 0.2;
+  } else if (!onGround) {
+    // Mid-air: slight rotation based on horizontal velocity
+    const targetAngle = (player.body.velocity.x / 260) * 8;
+    player.angle += (targetAngle - player.angle) * 0.08;
   }
 
   // variable jump (with optional double jump for Ms. Tush)
