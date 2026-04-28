@@ -141,6 +141,76 @@
   }
   .help-reset:hover { background: rgba(255, 82, 82, 0.15); }
 
+  /* Intro story overlay */
+  #intro-overlay {
+    position: fixed; inset: 0; z-index: 600;
+    background: linear-gradient(180deg, #0a0a1f 0%, #2a1f4a 50%, #4a1a3a 100%);
+    display: none;
+    align-items: center; justify-content: center;
+    text-align: center; color: #fff;
+    cursor: pointer;
+    padding: 30px;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+  #intro-overlay.active { display: flex; }
+  #intro-overlay::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(255, 215, 0, 0.08), transparent 60%);
+    pointer-events: none;
+  }
+  .intro-skip {
+    position: absolute; top: 16px; left: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #fff; padding: 8px 18px;
+    border-radius: 8px; font-size: 14px;
+    cursor: pointer; z-index: 2;
+  }
+  .intro-skip:hover { background: rgba(255, 235, 59, 0.25); }
+  .intro-panel {
+    max-width: 640px;
+    padding: 20px 30px;
+    animation: introFade 0.7s ease both;
+    z-index: 1;
+  }
+  @keyframes introFade {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .intro-emoji { font-size: 90px; margin-bottom: 20px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5)); animation: introBounce 2s ease-in-out infinite; }
+  @keyframes introBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .intro-panel h2 {
+    font-size: 36px; color: #ffd700; margin: 0 0 18px;
+    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.7);
+    font-weight: bold;
+  }
+  .intro-panel p {
+    font-size: 18px; line-height: 1.7; margin: 0 0 30px;
+    color: #e8e8e8;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+  .intro-tap {
+    font-size: 14px; color: #ffd700;
+    animation: introPulse 1.4s ease-in-out infinite;
+    border-top: 1px solid rgba(255, 215, 0, 0.3);
+    padding-top: 10px;
+    display: inline-block; margin-top: 10px;
+  }
+  @keyframes introPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  /* Mobile-friendly text scaling */
+  @media (max-width: 700px) {
+    .intro-emoji { font-size: 60px; margin-bottom: 12px; }
+    .intro-panel h2 { font-size: 24px; margin-bottom: 12px; }
+    .intro-panel p { font-size: 15px; margin-bottom: 18px; }
+  }
+
   /* Orientation hint (portrait on mobile) */
   #rotate-hint {
     display: none;
@@ -228,9 +298,64 @@
         localStorage.removeItem('theBehind_muted');
         localStorage.removeItem('theBehind_music');
         localStorage.removeItem('theBehind_sawHelp');
+        localStorage.removeItem('theBehind_sawIntro');
       } catch(e) {}
       location.reload();
     }
+
+    // Intro story animation — shown on first visit + after every "New Game" reset
+    function showIntro() {
+      const overlay = document.getElementById('intro-overlay');
+      if (!overlay) return;
+      let panel = 1;
+      const panels = overlay.querySelectorAll('.intro-panel');
+      const total = panels.length;
+
+      const showPanel = (n) => {
+        panels.forEach(p => {
+          p.hidden = parseInt(p.dataset.panel) !== n;
+          if (parseInt(p.dataset.panel) === n) {
+            // restart fade-in animation
+            p.style.animation = 'none';
+            void p.offsetWidth; // force reflow
+            p.style.animation = '';
+          }
+        });
+      };
+
+      const finishIntro = () => {
+        overlay.classList.remove('active');
+        try { localStorage.setItem('theBehind_sawIntro', '1'); } catch(e) {}
+      };
+
+      const advance = (e) => {
+        if (e && e.target && e.target.id === 'intro-skip-btn') return; // skip button has its own handler
+        panel++;
+        if (panel > total) finishIntro();
+        else showPanel(panel);
+      };
+
+      showPanel(1);
+      overlay.classList.add('active');
+      overlay.addEventListener('click', advance);
+      overlay.addEventListener('touchend', (e) => { e.preventDefault(); advance(e); }, { passive: false });
+      document.getElementById('intro-skip-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        finishIntro();
+      });
+    }
+
+    // Show intro on every "new game" — i.e., when no save exists yet
+    try {
+      if (!localStorage.getItem('theBehind_sawIntro')) {
+        // Wait for DOM + game to start booting
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => setTimeout(showIntro, 200));
+        } else {
+          setTimeout(showIntro, 200);
+        }
+      }
+    } catch(e) {}
   </script>
 
   <!-- Orientation hint -->
@@ -238,6 +363,35 @@
     <div class="icon">📱</div>
     <div>סובב את המכשיר לרוחב</div>
     <div style="font-size:14px;opacity:0.7;margin-top:10px">Rotate device to landscape</div>
+  </div>
+
+  <!-- Intro story animation (shown on first visit + after New Game reset) -->
+  <div id="intro-overlay">
+    <button class="intro-skip" id="intro-skip-btn">דלג ›</button>
+    <div class="intro-panel" data-panel="1">
+      <div class="intro-emoji">🚽</div>
+      <h2>גיבורי העל של השירותים</h2>
+      <p>פעם, בעיר רחוקה, מערכת התברואה הייתה שלווה ושמחה. הכל עבד כמו שצריך, וכולם היו מאושרים.</p>
+      <div class="intro-tap">הקש להמשך ›</div>
+    </div>
+    <div class="intro-panel" data-panel="2" hidden>
+      <div class="intro-emoji">🧹</div>
+      <h2>הפלישה!</h2>
+      <p>אבל יום אחד, צבא של מנקים מטורפים השתלט על כל הצינורות, הביוב, ואפילו על מערכת העיכול עצמה!</p>
+      <div class="intro-tap">הקש להמשך ›</div>
+    </div>
+    <div class="intro-panel" data-panel="3" hidden>
+      <div class="intro-emoji">🦠</div>
+      <h2>הסכנה!</h2>
+      <p>הם רוצים להפיץ סרחון נורא בכל העולם. החוקרים גילו שרק חמשת גיבורי השירותים יכולים לעצור אותם.</p>
+      <div class="intro-tap">הקש להמשך ›</div>
+    </div>
+    <div class="intro-panel" data-panel="4" hidden>
+      <div class="intro-emoji">💪</div>
+      <h2>גיבורי-העל!</h2>
+      <p>חמישה גיבורים יחודיים, כל אחד עם יכולת על שונה. בחר את שלך, אסוף שעועיות, הבס את הבוסים, והצל את העולם מהריח הנורא!</p>
+      <div class="intro-tap">בוא נשחק! ›</div>
+    </div>
   </div>
 
 <script>
@@ -6762,12 +6916,19 @@ function create() {
   }).setOrigin(0.5);
   scene.tweens.add({ targets: press, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
 
-  // Reset / New Game button — visible only if there's saved progress
+  // Reset / New Game button — visible only if there's saved progress.
+  // Made prominent so it's obvious how to start fresh.
   let hasSave = false;
   try { hasSave = !!localStorage.getItem('theBehind_save'); } catch(e) {}
-  const resetBtn = scene.add.text(W/2, H/2 + 175,
-    hasSave ? '🔄 התחל משחק חדש (אפס שמירה)' : '',
-    { font: '15px sans-serif', color: '#ff8a80', backgroundColor: '#0008', padding: { x: 12, y: 6 } }
+  const resetBtn = scene.add.text(W/2, H/2 + 195,
+    hasSave ? '🔄  משחק חדש לגמרי  🔄' : '',
+    {
+      font: 'bold 20px sans-serif',
+      color: '#ffffff',
+      backgroundColor: '#c62828',
+      padding: { x: 22, y: 10 },
+      stroke: '#ffeb3b', strokeThickness: 2
+    }
   ).setOrigin(0.5);
   if (hasSave) {
     resetBtn.setInteractive({ useHandCursor: true });
@@ -6775,6 +6936,8 @@ function create() {
       if (evt && evt.stopPropagation) evt.stopPropagation();
       window.resetAllProgress();
     });
+    // Pulsing glow to draw attention
+    scene.tweens.add({ targets: resetBtn, alpha: 0.7, duration: 800, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
   }
 
   titleGroup.add([dim, title, subtitle, ctrls, press, resetBtn]);
@@ -7025,12 +7188,36 @@ function create() {
   buildShopUI(scene);
 
   // end-state text (hidden initially)
-  endText = scene.add.text(W/2, H/2 - 30, '', {
+  endText = scene.add.text(W/2, H/2 - 60, '', {
     font: 'bold 48px sans-serif', color: '#fff', stroke: '#000', strokeThickness: 6
   }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(false);
-  const endHintText = window.TouchInput && window.TouchInput.isMobile ? 'הקש על המסך להתחיל מחדש' : 'לחץ רווח להתחיל מחדש';
-  endHint = scene.add.text(W/2, H/2 + 40, endHintText, {
-    font: '20px sans-serif', color: '#ffd700'
+  // Retry button — restart current sublevel, keep beans/upgrades
+  scene._endRetryBtn = scene.add.text(W/2, H/2 + 30, '🔁  נסה שוב את השלב הזה', {
+    font: 'bold 22px sans-serif', color: '#ffffff',
+    backgroundColor: '#2e7d32', padding: { x: 22, y: 12 },
+    stroke: '#000', strokeThickness: 2
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
+  scene._endRetryBtn.setInteractive({ useHandCursor: true });
+  scene._endRetryBtn.on('pointerdown', (pointer, lx, ly, evt) => {
+    if (evt && evt.stopPropagation) evt.stopPropagation();
+    if (state !== 'win' && state !== 'lose') return;
+    if (state === 'win') currentLevelIdx = 0;
+    scene.scene.restart();
+  });
+  // Reset / New Game button — wipes save and reloads
+  scene._endNewGameBtn = scene.add.text(W/2, H/2 + 90, '🔄  התחל משחק חדש לגמרי', {
+    font: 'bold 18px sans-serif', color: '#ffffff',
+    backgroundColor: '#c62828', padding: { x: 18, y: 10 },
+    stroke: '#000', strokeThickness: 2
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(1001).setVisible(false);
+  scene._endNewGameBtn.setInteractive({ useHandCursor: true });
+  scene._endNewGameBtn.on('pointerdown', (pointer, lx, ly, evt) => {
+    if (evt && evt.stopPropagation) evt.stopPropagation();
+    window.resetAllProgress();
+  });
+  // Keep endHint for keyboard fallback (legacy compatibility)
+  endHint = scene.add.text(W/2, H/2 + 145, 'או: רווח = נסה שוב · R = משחק חדש', {
+    font: '13px sans-serif', color: '#90a4ae'
   }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(false);
 }
 
@@ -7967,6 +8154,11 @@ function endGame(scene, victory) {
   endText.setColor(victory ? '#ffd700' : '#ff5252');
   endText.setVisible(true);
   endHint.setVisible(true);
+  if (scene._endRetryBtn) {
+    scene._endRetryBtn.setText(victory ? '🔁  שחק שוב' : '🔁  נסה שוב את השלב הזה');
+    scene._endRetryBtn.setVisible(true);
+  }
+  if (scene._endNewGameBtn) scene._endNewGameBtn.setVisible(true);
   AudioSys.stopMusic();
   if (victory) {
     AudioSys.sfxVictory();
@@ -8775,13 +8967,14 @@ function update(time, dt) {
 
   // ----- END STATES (win / lose) -----
   if (state === 'win' || state === 'lose') {
-    if (Phaser.Input.Keyboard.JustDown(cursors.space) || Phaser.Input.Keyboard.JustDown(scene._rKey)) {
-      if (state === 'win') {
-        // Completed the final level (3-10). Loop back to start but KEEP all progress.
-        currentLevelIdx = 0;
-      }
-      // For 'lose': retry current sublevel — don't touch currentLevelIdx or save data.
+    // SPACE = retry current sublevel (or replay from level 0 if winning)
+    if (Phaser.Input.Keyboard.JustDown(cursors.space)) {
+      if (state === 'win') currentLevelIdx = 0;
       scene.scene.restart();
+    }
+    // R = full reset / new game
+    else if (Phaser.Input.Keyboard.JustDown(scene._rKey)) {
+      window.resetAllProgress();
     }
     return;
   }
