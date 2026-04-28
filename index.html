@@ -5104,95 +5104,159 @@ function drawBackground(scene, lvl) {
     }
 
     case 'livingroom': {
-      // Warm wall
-      bgRect(W/2, H/2, W * 2, H * 2, 0xd7ccc8, 0.45, 0, -95);
-      // Wallpaper stripes
+      // Warm wall — stronger base color
+      bgRect(W/2, H/2, W * 2, H * 2, 0x8d6e63, 0.55, 0, -95);
+      // Vintage wallpaper pattern (diamond grid)
       bgGfx(0, -94, g => {
-        g.fillStyle(0xbcaaa4, 0.15);
-        for (let i = 0; i < 30; i++) g.fillRect(i * 50, 0, 2, H);
+        g.fillStyle(0x6d4c41, 0.35);
+        for (let x = 0; x < W; x += 60) {
+          for (let y = 0; y < H; y += 60) {
+            const cx = x + 30 + ((y / 60) % 2) * 30;
+            // diamond shape
+            g.fillTriangle(cx - 8, y + 30, cx, y + 22, cx + 8, y + 30);
+            g.fillTriangle(cx - 8, y + 30, cx, y + 38, cx + 8, y + 30);
+          }
+        }
+        // wallpaper highlights
+        g.fillStyle(0xa1887f, 0.25);
+        for (let x = 0; x < W; x += 60) g.fillRect(x, 0, 1, H);
       });
-      // Ceiling lamp (viewport-fixed)
+      // Big sunny window with curtains (viewport-fixed)
+      bgGfx(0, -82, g => {
+        const wx = W * 0.7;
+        // window frame
+        g.fillStyle(0x4e342e, 0.85); g.fillRect(wx - 80, 30, 160, 130);
+        g.fillStyle(0x87ceeb, 0.95); g.fillRect(wx - 72, 38, 144, 114);
+        // window cross
+        g.fillStyle(0x4e342e, 0.85); g.fillRect(wx - 2, 38, 4, 114); g.fillRect(wx - 72, 92, 144, 4);
+        // distant clouds in window
+        g.fillStyle(0xffffff, 0.85); g.fillEllipse(wx - 40, 65, 30, 12); g.fillEllipse(wx + 30, 110, 35, 14);
+        // curtains
+        g.fillStyle(0xc62828, 0.75); g.fillRect(wx - 100, 25, 24, 145); g.fillRect(wx + 76, 25, 24, 145);
+        g.fillStyle(0x8e0000, 0.7); g.fillRect(wx - 95, 25, 5, 145); g.fillRect(wx + 90, 25, 5, 145);
+        // curtain rod
+        g.fillStyle(0xffd700, 0.9); g.fillRect(wx - 105, 20, 210, 5);
+        g.fillCircle(wx - 102, 22, 6); g.fillCircle(wx + 102, 22, 6);
+        // sunlight from window
+        g.fillStyle(0xfff9c4, 0.08);
+        g.fillTriangle(wx - 70, 152, wx + 70, 152, wx, H);
+      });
+      // Big ceiling chandelier (centered)
       bgGfx(0, -68, g => {
-        g.fillStyle(0x616161, 0.3); g.fillRect(W/2 - 2, 0, 4, 25);
-        g.fillStyle(0xfff9c4, 0.25); g.fillTriangle(W/2 - 25, 25, W/2 + 25, 25, W/2, 50);
-        // Warm light glow
-        g.fillStyle(0xfff9c4, 0.03);
-        g.fillTriangle(W/2 - 120, H, W/2 + 120, H, W/2, 50);
+        const cx = W * 0.32;
+        g.fillStyle(0x4e342e, 0.85); g.fillRect(cx - 2, 0, 4, 30);
+        g.fillStyle(0xffd700, 0.85); g.fillCircle(cx, 35, 18);
+        g.fillStyle(0xfff59d, 0.95); g.fillCircle(cx, 35, 12);
+        g.fillStyle(0xfff9c4, 0.4); g.fillCircle(cx, 35, 28);
+        // hanging crystals
+        g.fillStyle(0xffffff, 0.7); g.fillCircle(cx - 12, 50, 3); g.fillCircle(cx, 53, 3); g.fillCircle(cx + 12, 50, 3);
+        // light bloom
+        g.fillStyle(0xfff9c4, 0.06); g.fillCircle(cx, 35, 80);
       });
-      // Baseboard
-      bgGfx(0.3, -50, g => { g.fillStyle(0x5d4037, 0.25); g.fillRect(0, H - 56, LEVEL_W * 4, 10); });
-      // Crown molding at top
-      bgGfx(0.3, -50, g => { g.fillStyle(0x8d6e63, 0.15); g.fillRect(0, 0, LEVEL_W * 4, 6); g.fillStyle(0x6d4c41, 0.1); g.fillRect(0, 6, LEVEL_W * 4, 3); });
-      // Varied living room objects — tiled
-      bgGfx(0.15, -60, g => {
-        const sectionW = 2500;
+      // Wood floor + baseboard (visible)
+      bgGfx(0.5, -50, g => {
+        g.fillStyle(0x4e342e, 0.85); g.fillRect(0, H - 60, LEVEL_W * 4, 8);
+        // wood floor planks
+        g.fillStyle(0x6d4c41, 0.55); g.fillRect(0, H - 52, LEVEL_W * 4, 12);
+        for (let i = 0; i < LEVEL_W * 4 / 80; i++) {
+          g.fillStyle(0x4e342e, 0.55); g.fillRect(i * 80 + 2, H - 50, 1, 8);
+          g.fillStyle(0x8d6e63, 0.4); g.fillRect(i * 80 + 4, H - 50, 70, 1);
+        }
+      });
+      // Crown molding at top with double-layer
+      bgGfx(0.5, -50, g => {
+        g.fillStyle(0x4e342e, 0.85); g.fillRect(0, 0, LEVEL_W * 4, 8);
+        g.fillStyle(0x6d4c41, 0.7); g.fillRect(0, 8, LEVEL_W * 4, 4);
+      });
+      // Furniture — tiled, MUCH more visible (alpha bumped 2-3x)
+      bgGfx(0.3, -60, g => {
+        const sectionW = 2200;
         const repeats = Math.ceil(LEVEL_W / sectionW);
         for (let r = 0; r < repeats; r++) {
           const ox = r * sectionW;
-          // 1. Big couch
-          g.fillStyle(0x795548, 0.25); g.fillRect(100 + ox, H - 125, 140, 45);
-          g.fillRect(105 + ox, H - 150, 130, 30);
-          g.fillRect(92 + ox, H - 140, 15, 60); g.fillRect(233 + ox, H - 140, 15, 60);
-          g.fillStyle(0x8d6e63, 0.15); g.fillRect(115 + ox, H - 118, 35, 30); g.fillRect(160 + ox, H - 118, 35, 30);
-          // throw pillows
-          g.fillStyle(0xef5350, 0.12); g.fillRect(118 + ox, H - 145, 18, 14);
-          g.fillStyle(0x42a5f5, 0.1); g.fillRect(210 + ox, H - 143, 16, 12);
+          // Couch — bigger and more solid
+          g.fillStyle(0x8e3a3a, 0.9); g.fillRoundedRect(80 + ox, H - 130, 180, 50, 8);
+          g.fillStyle(0x6e2828, 0.85); g.fillRoundedRect(85 + ox, H - 160, 170, 38, 6);
+          // armrests
+          g.fillStyle(0x8e3a3a, 0.95); g.fillRoundedRect(72 + ox, H - 150, 22, 70, 6); g.fillRoundedRect(258 + ox, H - 150, 22, 70, 6);
+          // cushion separators
+          g.fillStyle(0x4a1818, 0.55); g.fillRect(140 + ox, H - 158, 2, 75); g.fillRect(200 + ox, H - 158, 2, 75);
+          // pillows
+          g.fillStyle(0xffeb3b, 0.85); g.fillRoundedRect(100 + ox, H - 155, 28, 22, 4);
+          g.fillStyle(0x42a5f5, 0.85); g.fillRoundedRect(220 + ox, H - 155, 28, 22, 4);
 
-          // 2. TV stand with TV
-          g.fillStyle(0x5d4037, 0.2); g.fillRect(370 + ox, H - 100, 90, 40);
-          g.fillStyle(0x212121, 0.25); g.fillRect(378 + ox, H - 155, 74, 52);
-          g.fillStyle(0x42a5f5, 0.12); g.fillRect(382 + ox, H - 151, 66, 44);
-          g.fillStyle(0x424242, 0.15); g.fillRect(412 + ox, H - 100, 6, 3);
+          // TV stand with big TV
+          g.fillStyle(0x4e342e, 0.9); g.fillRoundedRect(370 + ox, H - 105, 130, 45, 4);
+          // TV
+          g.fillStyle(0x212121, 0.95); g.fillRoundedRect(385 + ox, H - 175, 100, 70, 6);
+          g.fillStyle(0x1565c0, 0.7); g.fillRect(395 + ox, H - 167, 80, 54);
+          // TV reflection
+          g.fillStyle(0xffffff, 0.25); g.fillRect(395 + ox, H - 167, 32, 4);
+          g.fillStyle(0x424242, 0.7); g.fillRect(430 + ox, H - 105, 10, 4);
 
-          // 3. Tall bookshelf
-          g.fillStyle(0x5d4037, 0.25); g.fillRect(590 + ox, 100, 80, 180);
-          const bc = [0xef5350, 0x42a5f5, 0x66bb6a, 0xffa726];
-          for (let s = 0; s < 4; s++) {
-            g.fillStyle(0x4e342e, 0.15); g.fillRect(590 + ox, 100 + s * 45, 80, 3);
-            for (let b = 0; b < 3; b++) { g.fillStyle(bc[(s+b) % bc.length], 0.15); g.fillRect(596 + ox + b * 22, 103 + s * 45, 16, 38); }
+          // Bookshelf — taller, more colorful
+          g.fillStyle(0x4e342e, 0.95); g.fillRoundedRect(580 + ox, 80, 90, 220, 4);
+          const bc = [0xc62828, 0x1565c0, 0x2e7d32, 0xff9800, 0x6a1b9a];
+          for (let s = 0; s < 5; s++) {
+            g.fillStyle(0x3e2723, 0.85); g.fillRect(580 + ox, 80 + s * 44, 90, 4);
+            for (let b = 0; b < 4; b++) {
+              g.fillStyle(bc[(s + b) % bc.length], 0.85);
+              g.fillRect(586 + ox + b * 20, 84 + s * 44, 16, 38);
+              g.fillStyle(0xffffff, 0.3);
+              g.fillRect(586 + ox + b * 20, 86 + s * 44, 16, 1);
+            }
           }
 
-          // 4. Armchair
-          g.fillStyle(0x6d4c41, 0.25); g.fillRect(830 + ox, H - 110, 60, 40);
-          g.fillRect(835 + ox, H - 135, 50, 28);
-          g.fillRect(822 + ox, H - 120, 14, 45); g.fillRect(884 + ox, H - 120, 14, 45);
-          g.fillStyle(0x8d6e63, 0.15); g.fillCircle(860 + ox, H - 100, 12);
+          // Armchair
+          g.fillStyle(0x4a1818, 0.9); g.fillRoundedRect(810 + ox, H - 115, 80, 55, 8);
+          g.fillStyle(0x6e2828, 0.85); g.fillRoundedRect(818 + ox, H - 145, 64, 30, 6);
+          g.fillStyle(0x8e3a3a, 0.9); g.fillRoundedRect(800 + ox, H - 125, 18, 65, 4); g.fillRoundedRect(882 + ox, H - 125, 18, 65, 4);
 
-          // 5. Tall potted plant
-          g.fillStyle(0x8d6e63, 0.2); g.fillRect(1050 + ox, H - 85, 26, 25);
-          g.fillStyle(0x4caf50, 0.25); g.fillCircle(1063 + ox, H - 100, 18);
-          g.fillStyle(0x66bb6a, 0.2); g.fillCircle(1055 + ox, H - 110, 14);
-          g.fillStyle(0x2e7d32, 0.2); g.fillCircle(1072 + ox, H - 108, 12);
+          // Tall potted plant — bigger and bolder
+          g.fillStyle(0x6d4c41, 0.95); g.fillRoundedRect(1030 + ox, H - 90, 38, 30, 4);
+          g.fillStyle(0x8d6e63, 0.7); g.fillRect(1030 + ox, H - 88, 38, 5);
+          g.fillStyle(0x2e7d32, 0.85); g.fillCircle(1049 + ox, H - 110, 26);
+          g.fillStyle(0x388e3c, 0.85); g.fillCircle(1037 + ox, H - 125, 18);
+          g.fillStyle(0x4caf50, 0.85); g.fillCircle(1062 + ox, H - 122, 20);
+          g.fillStyle(0x66bb6a, 0.7); g.fillCircle(1049 + ox, H - 138, 14);
 
-          // 6. Floor lamp
-          g.fillStyle(0x424242, 0.2); g.fillRect(1293 + ox, H - 170, 4, 110);
-          g.fillStyle(0x616161, 0.2); g.fillEllipse(1295 + ox, H - 60, 18, 4);
-          g.fillStyle(0xfff9c4, 0.25); g.fillTriangle(1280 + ox, H - 170, 1310 + ox, H - 170, 1295 + ox, H - 195);
-          // lamp glow
-          g.fillStyle(0xfff9c4, 0.03); g.fillTriangle(1270 + ox, H - 55, 1320 + ox, H - 55, 1295 + ox, H - 170);
+          // Floor lamp with glow
+          g.fillStyle(0x37474f, 0.9); g.fillRect(1230 + ox, H - 200, 5, 138);
+          g.fillStyle(0x546e7a, 0.85); g.fillEllipse(1232 + ox, H - 60, 26, 6);
+          g.fillStyle(0xffd700, 0.95); g.fillTriangle(1210 + ox, H - 200, 1255 + ox, H - 200, 1232 + ox, H - 232);
+          g.fillStyle(0xfff9c4, 0.95); g.fillEllipse(1232 + ox, H - 200, 36, 8);
+          g.fillStyle(0xfff9c4, 0.12); g.fillCircle(1232 + ox, H - 215, 60);
 
-          // 7. Coffee table with mug
-          g.fillStyle(0x5d4037, 0.2); g.fillRect(1490 + ox, H - 85, 70, 8);
-          g.fillRect(1498 + ox, H - 77, 6, 18); g.fillRect(1546 + ox, H - 77, 6, 18);
-          g.fillStyle(0xffffff, 0.2); g.fillRect(1515 + ox, H - 95, 10, 10);
-          g.fillRect(1525 + ox, H - 92, 4, 5);
+          // Coffee table with magazine + mug
+          g.fillStyle(0x4e342e, 0.95); g.fillRoundedRect(1410 + ox, H - 90, 110, 10, 3);
+          g.fillStyle(0x3e2723, 0.85); g.fillRect(1418 + ox, H - 80, 6, 22); g.fillRect(1506 + ox, H - 80, 6, 22);
+          g.fillStyle(0xeceff1, 0.95); g.fillRect(1430 + ox, H - 100, 24, 12);
+          g.fillStyle(0xff5722, 0.85); g.fillRect(1432 + ox, H - 98, 20, 2);
+          g.fillStyle(0x1565c0, 0.85); g.fillRect(1432 + ox, H - 94, 20, 2);
+          // mug
+          g.fillStyle(0xffffff, 0.95); g.fillRect(1480 + ox, H - 105, 14, 14);
+          g.fillStyle(0xc62828, 0.95); g.fillRect(1480 + ox, H - 105, 14, 4);
 
-          // 8. Picture frame gallery wall
-          g.fillStyle(0x6d4c41, 0.3); g.fillRect(1740 + ox, 40, 80, 55);
-          g.fillStyle(0x81d4fa, 0.15); g.fillRect(1746 + ox, 46, 68, 43);
-          g.fillStyle(0x8d6e63, 0.25); g.fillRect(1830 + ox, 55, 40, 35);
-          g.fillStyle(0x66bb6a, 0.12); g.fillRect(1834 + ox, 59, 32, 27);
+          // Gallery wall — three picture frames
+          g.fillStyle(0x4e342e, 0.95); g.fillRect(1700 + ox, 35, 70, 60); g.fillRect(1780 + ox, 50, 55, 45); g.fillRect(1845 + ox, 30, 65, 50);
+          g.fillStyle(0x81d4fa, 0.9); g.fillRect(1707 + ox, 42, 56, 46);
+          g.fillStyle(0xffeb3b, 0.85); g.fillCircle(1735 + ox, 70, 6);
+          g.fillStyle(0xa5d6a7, 0.9); g.fillRect(1786 + ox, 56, 43, 33);
+          g.fillStyle(0xff9800, 0.85); g.fillCircle(1800 + ox, 73, 7);
+          g.fillStyle(0xf48fb1, 0.9); g.fillRect(1851 + ox, 36, 53, 38);
 
-          // 9. Rug on floor
-          g.fillStyle(0xab47bc, 0.12); g.fillEllipse(2050 + ox, H - 62, 110, 12);
-          g.fillStyle(0x7b1fa2, 0.08); g.fillEllipse(2050 + ox, H - 62, 80, 8);
+          // Persian rug
+          g.fillStyle(0x6a1b9a, 0.7); g.fillEllipse(2030 + ox, H - 62, 160, 14);
+          g.fillStyle(0xc62828, 0.55); g.fillEllipse(2030 + ox, H - 62, 130, 10);
+          g.fillStyle(0xffd700, 0.5); g.fillEllipse(2030 + ox, H - 62, 80, 6);
 
-          // 10. Grandfather clock
-          g.fillStyle(0x5d4037, 0.25); g.fillRect(2250 + ox, H - 180, 35, 120);
-          g.fillStyle(0x6d4c41, 0.2); g.fillRect(2245 + ox, H - 185, 45, 12);
-          g.fillStyle(0xffd54f, 0.2); g.fillCircle(2268 + ox, H - 145, 10);
-          g.fillStyle(0x000000, 0.1); g.fillRect(2267 + ox, H - 150, 1, 8);
-          g.fillStyle(0xffd54f, 0.15); g.fillCircle(2268 + ox, H - 105, 5);
+          // Grandfather clock
+          g.fillStyle(0x3e2723, 0.95); g.fillRoundedRect(2200 + ox, H - 220, 50, 160, 4);
+          g.fillStyle(0x6d4c41, 0.85); g.fillRect(2195 + ox, H - 225, 60, 14);
+          g.fillStyle(0xfff9c4, 0.95); g.fillCircle(2225 + ox, H - 180, 16);
+          g.fillStyle(0x212121, 0.95); g.fillRect(2224 + ox, H - 192, 2, 12);
+          g.fillStyle(0x212121, 0.95); g.fillRect(2225 + ox, H - 180, 12, 2);
+          g.fillStyle(0xffd700, 0.85); g.fillCircle(2225 + ox, H - 130, 8);
         }
       });
       break;
@@ -5386,102 +5450,150 @@ function drawBackground(scene, lvl) {
     }
 
     case 'bathroom': {
-      // Light blue tile wall
-      bgRect(W/2, H/2, W * 2, H * 2, 0xe1f5fe, 0.4, 0, -95);
-      // Tile grid (viewport-fixed)
+      // Solid teal tile wall — much more saturated
+      bgRect(W/2, H/2, W * 2, H * 2, 0x4dd0e1, 0.65, 0, -95);
+      // Strong tile grid pattern
       bgGfx(0, -94, g => {
-        g.fillStyle(0xb3e5fc, 0.2);
-        for (let x = 0; x < W; x += 30) g.fillRect(x, 0, 1, H);
-        for (let y = 0; y < H; y += 30) g.fillRect(0, y, W, 1);
-        g.fillStyle(0x4fc3f7, 0.08);
-        for (let x = 0; x < W; x += 90)
-          for (let y = 0; y < H; y += 90) g.fillRect(x, y, 30, 30);
+        g.fillStyle(0x00838f, 0.6);
+        for (let x = 0; x < W; x += 40) g.fillRect(x, 0, 2, H);
+        for (let y = 0; y < H; y += 40) g.fillRect(0, y, W, 2);
+        // Accent tiles in pattern
+        g.fillStyle(0xffffff, 0.5);
+        for (let x = 0; x < W; x += 80) {
+          for (let y = 0; y < H; y += 80) {
+            const ox = (Math.floor(y / 80) % 2) * 40;
+            g.fillRect(x + ox + 2, y + 2, 36, 36);
+          }
+        }
+        g.fillStyle(0x4fc3f7, 0.45);
+        for (let x = 0; x < W; x += 80) {
+          for (let y = 40; y < H; y += 80) {
+            g.fillRect(x + 2, y + 2, 36, 36);
+          }
+        }
       });
-      // Ceiling pipes — scaled to level
+      // Ceiling pipes — strong silver
       bgGfx(0.1, -70, g => {
         const pipeLen = LEVEL_W * 2;
-        g.fillStyle(0x78909c, 0.3); g.fillRect(0, 12, pipeLen, 7); g.fillRect(0, 38, pipeLen, 5);
-        const joints = Math.ceil(LEVEL_W / 200);
+        g.fillStyle(0x37474f, 0.95); g.fillRect(0, 10, pipeLen, 12);
+        g.fillStyle(0x607d8b, 0.95); g.fillRect(0, 10, pipeLen, 3);
+        g.fillStyle(0x37474f, 0.95); g.fillRect(0, 38, pipeLen, 8);
+        const joints = Math.ceil(LEVEL_W / 220);
         for (let i = 0; i < joints; i++) {
-          g.fillStyle(0x607d8b, 0.25); g.fillRect(i * 200, 8, 16, 14);
-          g.fillStyle(0x4fc3f7, 0.3); g.fillCircle(i * 200 + 8, 28 + (i % 3) * 3, 2);
+          g.fillStyle(0x263238, 0.95); g.fillRect(i * 220, 7, 18, 18);
+          g.fillStyle(0xffd54f, 0.95); g.fillCircle(i * 220 + 9, 16, 4);
+          // Drip
+          g.fillStyle(0x4fc3f7, 0.85); g.fillCircle(i * 220 + 9, 30, 3);
         }
       });
-      // Floor puddles
-      bgGfx(0.18, -45, g => {
-        const pudCount = Math.ceil(LEVEL_W / 600);
-        for (let i = 0; i < pudCount; i++) {
-          g.fillStyle(0x81d4fa, 0.06);
-          g.fillEllipse(i * 600 + 300, H - 58, 40 + (i % 3) * 15, 5);
-        }
-      });
-      // Varied bathroom objects — tiled
-      bgGfx(0.18, -58, g => {
-        const sectionW = 2400;
+      // Bathroom objects — tiled, much higher alpha for visibility
+      bgGfx(0.3, -58, g => {
+        const sectionW = 2200;
         const repeats = Math.ceil(LEVEL_W / sectionW);
         for (let r = 0; r < repeats; r++) {
           const ox = r * sectionW;
-          // 1. Bathtub with shower
-          g.fillStyle(0xffffff, 0.25); g.fillRect(70 + ox, H - 100, 130, 40);
-          g.fillStyle(0xeceff1, 0.15); g.fillRect(76 + ox, H - 95, 118, 30);
-          g.fillStyle(0x81d4fa, 0.12); g.fillRect(80 + ox, H - 80, 110, 15);
-          g.fillStyle(0x90a4ae, 0.2); g.fillRect(175 + ox, H - 170, 5, 70); g.fillCircle(178 + ox, H - 170, 8);
+          // Bathtub with curtain
+          g.fillStyle(0xffffff, 0.95); g.fillRoundedRect(60 + ox, H - 110, 160, 50, 10);
+          g.fillStyle(0xb3e5fc, 0.85); g.fillRoundedRect(70 + ox, H - 100, 140, 35, 8);
+          g.fillStyle(0xeceff1, 0.85); g.fillRoundedRect(60 + ox, H - 110, 160, 8, 8);
+          // Shower head
+          g.fillStyle(0xb0bec5, 0.95); g.fillRect(195 + ox, H - 200, 6, 90);
+          g.fillStyle(0x78909c, 0.95); g.fillCircle(198 + ox, H - 200, 12);
+          g.fillStyle(0x4fc3f7, 0.6); g.fillRect(195 + ox, H - 188, 6, 80);
+          // Faucet
+          g.fillStyle(0xffd54f, 0.95); g.fillRect(75 + ox, H - 120, 10, 12); g.fillCircle(80 + ox, H - 105, 5);
 
-          // 2. Toilet
-          g.fillStyle(0xffffff, 0.25); g.fillRect(345 + ox, H - 95, 35, 35);
-          g.fillStyle(0xeceff1, 0.2); g.fillEllipse(363 + ox, H - 60, 40, 6);
-          g.fillStyle(0xffffff, 0.2); g.fillRect(350 + ox, H - 120, 26, 30);
-          g.fillStyle(0xbdbdbd, 0.12); g.fillRect(368 + ox, H - 108, 3, 8);
+          // Sink + big mirror
+          g.fillStyle(0xffffff, 0.95); g.fillRoundedRect(330 + ox, H - 110, 80, 50, 6);
+          g.fillStyle(0xb3e5fc, 0.7); g.fillEllipse(370 + ox, H - 95, 60, 12);
+          g.fillStyle(0xb0bec5, 0.95); g.fillRect(364 + ox, H - 130, 8, 24);
+          g.fillStyle(0x4fc3f7, 0.85); g.fillCircle(370 + ox, H - 130, 4);
+          // Mirror
+          g.fillStyle(0x424242, 0.95); g.fillRoundedRect(335 + ox, 50, 75, 95, 4);
+          g.fillStyle(0xb3e5fc, 0.95); g.fillRect(341 + ox, 56, 63, 83);
+          g.fillStyle(0xffffff, 0.4); g.fillRect(346 + ox, 60, 8, 30);
+          // sink glow
+          g.fillStyle(0xffd700, 0.4); g.fillCircle(370 + ox, 100, 35);
 
-          // 3. Pedestal sink with mirror
-          g.fillStyle(0xffffff, 0.2); g.fillEllipse(575 + ox, H - 100, 45, 10);
-          g.fillStyle(0xeceff1, 0.15); g.fillRect(568 + ox, H - 90, 14, 30);
-          g.fillStyle(0x78909c, 0.2); g.fillRect(572 + ox, H - 118, 6, 18);
-          g.fillStyle(0xbdbdbd, 0.2); g.fillRect(555 + ox, 80, 40, 55);
-          g.fillStyle(0xbbdefb, 0.15); g.fillRect(559 + ox, 84, 32, 47);
-          g.fillStyle(0xffffff, 0.1); g.fillRect(563 + ox, 88, 5, 16);
+          // Toilet (the iconic one!)
+          g.fillStyle(0xffffff, 0.95); g.fillRoundedRect(540 + ox, H - 105, 60, 45, 6);
+          g.fillStyle(0x424242, 0.7); g.fillEllipse(570 + ox, H - 100, 50, 8);
+          g.fillStyle(0xb3e5fc, 0.85); g.fillEllipse(570 + ox, H - 100, 38, 5);
+          g.fillStyle(0xffffff, 0.95); g.fillRoundedRect(548 + ox, H - 145, 44, 40, 4);
+          g.fillStyle(0xeceff1, 0.85); g.fillRect(552 + ox, H - 140, 36, 30);
+          g.fillStyle(0xbdbdbd, 0.95); g.fillRect(580 + ox, H - 130, 4, 8);
 
-          // 4. Towel rack
-          g.fillStyle(0x78909c, 0.2); g.fillRect(770 + ox, 120, 60, 4);
-          g.fillRect(770 + ox, 120, 4, 8); g.fillRect(826 + ox, 120, 4, 8);
-          g.fillStyle(0x42a5f5, 0.15); g.fillRect(778 + ox, 124, 42, 30);
-          g.fillStyle(0x1e88e5, 0.1); g.fillRect(778 + ox, 144, 42, 10);
+          // Towel rack with bright towels
+          g.fillStyle(0x78909c, 0.95); g.fillRect(750 + ox, 120, 80, 5);
+          g.fillRect(750 + ox, 120, 5, 12); g.fillRect(825 + ox, 120, 5, 12);
+          g.fillStyle(0x1976d2, 0.95); g.fillRect(758 + ox, 125, 32, 50);
+          g.fillStyle(0x42a5f5, 0.85); g.fillRect(758 + ox, 125, 32, 8);
+          g.fillStyle(0xc62828, 0.95); g.fillRect(792 + ox, 125, 32, 50);
+          g.fillStyle(0xef5350, 0.85); g.fillRect(792 + ox, 125, 32, 8);
 
-          // 5. Washing machine
-          g.fillStyle(0xeceff1, 0.25); g.fillRect(990 + ox, H - 120, 60, 60);
-          g.fillStyle(0xbdbdbd, 0.15); g.fillCircle(1020 + ox, H - 90, 18);
-          g.fillStyle(0xbbdefb, 0.1); g.fillCircle(1020 + ox, H - 90, 14);
-          g.fillStyle(0x9e9e9e, 0.12); g.fillRect(998 + ox, H - 118, 44, 5);
+          // Big washing machine
+          g.fillStyle(0xeceff1, 0.95); g.fillRoundedRect(960 + ox, H - 130, 75, 70, 6);
+          g.fillStyle(0xbdbdbd, 0.95); g.fillRect(966 + ox, H - 124, 63, 8);
+          g.fillStyle(0x37474f, 0.95); g.fillCircle(997 + ox, H - 90, 22);
+          g.fillStyle(0x90a4ae, 0.95); g.fillCircle(997 + ox, H - 90, 18);
+          g.fillStyle(0x4fc3f7, 0.7); g.fillCircle(997 + ox, H - 90, 14);
+          // sudsy water
+          g.fillStyle(0xffffff, 0.7); g.fillCircle(992 + ox, H - 92, 4); g.fillCircle(1003 + ox, H - 88, 3);
+          // buttons
+          g.fillStyle(0x4caf50, 0.95); g.fillCircle(972 + ox, H - 120, 3);
+          g.fillStyle(0xc62828, 0.95); g.fillCircle(983 + ox, H - 120, 3);
 
-          // 6. Laundry basket
-          g.fillStyle(0x8d6e63, 0.2); g.fillRect(1215 + ox, H - 95, 40, 35);
-          g.fillStyle(0x6d4c41, 0.15);
-          for (let w = 0; w < 4; w++) g.fillRect(1215 + ox, H - 90 + w * 8, 40, 1);
-          g.fillStyle(0xef5350, 0.12); g.fillRect(1222 + ox, H - 100, 12, 8);
-          g.fillStyle(0x42a5f5, 0.1); g.fillRect(1238 + ox, H - 98, 10, 6);
+          // Laundry basket with clothes
+          g.fillStyle(0x6d4c41, 0.95); g.fillRoundedRect(1190 + ox, H - 100, 50, 40, 4);
+          g.fillStyle(0x8d6e63, 0.85);
+          for (let w = 0; w < 5; w++) g.fillRect(1190 + ox, H - 96 + w * 8, 50, 2);
+          // clothes peeking out
+          g.fillStyle(0xff5722, 0.95); g.fillEllipse(1207 + ox, H - 105, 18, 8);
+          g.fillStyle(0x4caf50, 0.95); g.fillEllipse(1225 + ox, H - 103, 14, 6);
 
-          // 7. Shelf with toiletries
-          g.fillStyle(0xffffff, 0.2); g.fillRect(1440 + ox, 100, 60, 5);
-          g.fillStyle(0x4fc3f7, 0.15); g.fillRect(1448 + ox, 85, 10, 15);
-          g.fillStyle(0xffffff, 0.15); g.fillRect(1462 + ox, 88, 8, 12);
-          g.fillStyle(0x66bb6a, 0.12); g.fillRect(1475 + ox, 83, 10, 17);
-          g.fillStyle(0xf48fb1, 0.12); g.fillRect(1489 + ox, 86, 6, 14);
+          // Shelf with toiletries
+          g.fillStyle(0x6d4c41, 0.95); g.fillRect(1410 + ox, 105, 80, 6);
+          g.fillStyle(0x4fc3f7, 0.95); g.fillRect(1418 + ox, 80, 14, 25);
+          g.fillStyle(0xffffff, 0.95); g.fillRect(1418 + ox, 80, 14, 5);
+          g.fillStyle(0xff80ab, 0.95); g.fillRect(1438 + ox, 86, 12, 20);
+          g.fillStyle(0xffffff, 0.95); g.fillRect(1438 + ox, 86, 12, 5);
+          g.fillStyle(0x4caf50, 0.95); g.fillRect(1456 + ox, 78, 14, 28);
+          g.fillStyle(0xffeb3b, 0.95); g.fillRect(1474 + ox, 84, 11, 22);
 
-          // 8. Rubber ducky
-          g.fillStyle(0xffeb3b, 0.25); g.fillCircle(1710 + ox, H - 72, 8);
-          g.fillStyle(0xffeb3b, 0.2); g.fillCircle(1716 + ox, H - 80, 5);
-          g.fillStyle(0xff9800, 0.2); g.fillTriangle(1721 + ox, H - 80, 1726 + ox, H - 82, 1726 + ox, H - 78);
-          g.fillStyle(0x000000, 0.2); g.fillCircle(1718 + ox, H - 82, 1);
+          // Rubber ducky! (cute mascot)
+          g.fillStyle(0xffeb3b, 0.95); g.fillCircle(1685 + ox, H - 75, 12);
+          g.fillStyle(0xffeb3b, 0.95); g.fillCircle(1693 + ox, H - 87, 8);
+          g.fillStyle(0xff9800, 0.95); g.fillTriangle(1700 + ox, H - 87, 1708 + ox, H - 90, 1708 + ox, H - 84);
+          g.fillStyle(0x000000, 0.95); g.fillCircle(1696 + ox, H - 89, 1.5);
+          // Reflection
+          g.fillStyle(0xffffff, 0.6); g.fillCircle(1695 + ox, H - 91, 1);
 
-          // 9. Plunger
-          g.fillStyle(0x5d4037, 0.2); g.fillRect(1958 + ox, H - 130, 4, 65);
-          g.fillStyle(0x424242, 0.2); g.fillEllipse(1960 + ox, H - 65, 18, 8);
+          // Plunger
+          g.fillStyle(0x5d4037, 0.95); g.fillRect(1825 + ox, H - 140, 6, 75);
+          g.fillStyle(0xc62828, 0.95); g.fillEllipse(1828 + ox, H - 65, 22, 10);
+          g.fillStyle(0x8b0000, 0.85); g.fillEllipse(1828 + ox, H - 70, 22, 6);
 
-          // 10. Medicine cabinet
-          g.fillStyle(0xffffff, 0.2); g.fillRect(2190 + ox, 70, 45, 55);
-          g.fillStyle(0xbbdefb, 0.12); g.fillRect(2194 + ox, 74, 37, 47);
-          g.fillStyle(0xffffff, 0.08); g.fillRect(2198 + ox, 78, 5, 14);
-          g.fillStyle(0xbdbdbd, 0.15); g.fillRect(2226 + ox, 95, 3, 10);
+          // Medicine cabinet (mounted high)
+          g.fillStyle(0xffffff, 0.95); g.fillRoundedRect(1990 + ox, 70, 70, 80, 4);
+          g.fillStyle(0xb3e5fc, 0.95); g.fillRect(1995 + ox, 75, 60, 70);
+          g.fillStyle(0xffffff, 0.5); g.fillRect(2000 + ox, 80, 8, 25);
+          g.fillStyle(0xc62828, 0.95); g.fillRect(2010 + ox, 90, 8, 14);
+          g.fillStyle(0xffffff, 0.95); g.fillRect(2010 + ox, 90, 8, 4);
+          g.fillStyle(0x4caf50, 0.95); g.fillRect(2025 + ox, 100, 6, 14);
+
+          // Bath rug on floor
+          g.fillStyle(0x6a1b9a, 0.85); g.fillEllipse(2150 + ox, H - 62, 90, 8);
+          g.fillStyle(0xab47bc, 0.7); g.fillEllipse(2150 + ox, H - 62, 65, 6);
+        }
+      });
+      // Floor — wet tile shimmer
+      bgGfx(0.5, -45, g => {
+        g.fillStyle(0x00838f, 0.85); g.fillRect(0, H - 60, LEVEL_W * 4, 8);
+        // Reflection puddles
+        const pudCount = Math.ceil(LEVEL_W / 350);
+        for (let i = 0; i < pudCount; i++) {
+          g.fillStyle(0xb3e5fc, 0.5);
+          g.fillEllipse(i * 350 + 175, H - 56, 50 + (i % 3) * 12, 4);
         }
       });
       break;
@@ -9252,17 +9364,24 @@ function update(time, dt) {
   });
 
   // ----- PIT FALL -----
-  // Respawn at last known safe position. Damage is light (10) so accidental
-  // falls don't kill you from a single mistake, especially on mobile.
+  // Only damage the player if they actually fell into a defined pit.
+  // If they fell through solid ground (rare physics glitch), just
+  // teleport them back to the last safe position with no damage.
   if (player.y > H + 60) {
-    takeDamage(scene, 10);
-    if (state !== 'playing') return; // endGame may have fired
+    const lvl = LEVELS[currentLevelIdx];
+    const overPit = (lvl && lvl.pits) ? lvl.pits.some(([a, b]) =>
+      player.x >= a - 24 && player.x < b + 24
+    ) : false;
+    if (overPit) {
+      takeDamage(scene, 10);
+      if (state !== 'playing') return;
+    }
     const safeX = player._lastSafeX || 80;
     const safeY = (player._lastSafeY || (GROUND_Y - 60)) - 40;
     player.setPosition(safeX, safeY);
     player.setVelocity(0, 0);
     spawnPuff(scene, safeX, safeY, 0xff8a80);
-    floatText(scene, safeX, safeY - 30, '-10', '#ff5252');
+    if (overPit) floatText(scene, safeX, safeY - 30, '-10', '#ff5252');
   }
 
   // ----- MISSILE HOMING + FLASK EXPLOSION -----
